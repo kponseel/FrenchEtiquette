@@ -7,15 +7,17 @@ import {
   type ReactNode,
 } from 'react'
 import type { AttemptResult, Player } from '../types'
-import { read, remove, write } from './storage'
+import { readSession, removeSession, writeSession } from './storage'
 import {
   createPlayer,
   isPseudoTaken,
   loadPlayers,
+  normalizePseudo,
   recordFinalResult,
   recordModuleResult,
   validatePseudo,
 } from './players'
+import { hashPin, validatePin } from './pin'
 
 const CURRENT_KEY = 'currentPlayerId'
 
@@ -24,13 +26,18 @@ interface LoginResult {
   error?: string
 }
 
+interface CreateResult extends LoginResult {
+  id?: string
+}
+
 interface PlayerContextValue {
   player: Player | null
   players: Player[]
-  /** Crée un nouveau profil après contrôle d'unicité du pseudo. */
-  loginNew: (pseudo: string) => LoginResult
-  /** Reprend une session existante sur cet appareil. */
-  resume: (id: string) => void
+  /** Crée un profil (pseudo unique + code PIN) sans encore l'ouvrir. */
+  createProfile: (pseudo: string, pin: string) => Promise<CreateResult>
+  /** Ouvre un profil existant après vérification du code PIN. */
+  loginExisting: (id: string, pin: string) => Promise<LoginResult>
+  /** Verrouille la session (retour à l'écran d'accès). */
   logout: () => void
   saveModuleResult: (moduleId: string, result: AttemptResult) => void
   saveFinalResult: (result: AttemptResult) => void
@@ -40,8 +47,11 @@ const PlayerContext = createContext<PlayerContextValue | null>(null)
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [players, setPlayers] = useState<Player[]>(() => loadPlayers())
+  // L'id courant vit dans sessionStorage : il survit à un rechargement de page
+  // pendant la session, mais pas à la fermeture de l'app → le code PIN est
+  // redemandé à chaque nouvelle ouverture.
   const [currentId, setCurrentId] = useState<string | null>(() =>
-    read<string | null>(CURRENT_KEY, null),
+    readSession<string | null>(CURRENT_KEY, null),
   )
 
   const player = useMemo(
@@ -49,26 +59,47 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [players, currentId],
   )
 
-  const loginNew = useCallback((pseudo: string): LoginResult => {
-    const invalid = validatePseudo(pseudo)
-    if (invalid) return { ok: false, error: invalid }
-    if (isPseudoTaken(pseudo)) return { ok: false, error: 'Ce pseudo est déjà pris.' }
-
-    const created = createPlayer(pseudo)
-    setPlayers(loadPlayers())
-    setCurrentId(created.id)
-    write(CURRENT_KEY, created.id)
-    return { ok: true }
-  }, [])
-
-  const resume = useCallback((id: string) => {
+  const openPlayer = useCallback((id: string) => {
     setCurrentId(id)
-    write(CURRENT_KEY, id)
+    writeSession(CURRENT_KEY, id)
   }, [])
+
+  const createProfile = useCallback(
+    async (pseudo: string, pin: string): Promise<CreateResult> => {
+      const invalidPseudo = validatePseudo(pseudo)
+      if (invalidPseudo) return { ok: false, error: invalidPseudo }
+      if (isPseudoTaken(pseudo)) return { ok: false, error: 'Ce nom est déjà pris.' }
+      const invalidPin = validatePin(pin)
+      if (invalidPin) return { ok: false, error: invalidPin }
+
+      const pinHash = await hashPin(normalizePseudo(pseudo), pin)
+      const created = createPlayer(pseudo, pinHash)
+      setPlayers(loadPlayers())
+      return { ok: true, id: created.id }
+    },
+    [],
+  )
+
+  const loginExisting = useCallback(
+    async (id: string, pin: string): Promise<LoginResult> => {
+      const target = players.find((p) => p.id === id)
+      if (!target) return { ok: false, error: 'Profil introuvable.' }
+      // Profil hérité sans code : accès direct.
+      if (target.pinHash) {
+        const invalidPin = validatePin(pin)
+        if (invalidPin) return { ok: false, error: invalidPin }
+        const attempt = await hashPin(normalizePseudo(target.pseudo), pin)
+        if (attempt !== target.pinHash) return { ok: false, error: 'Code incorrect.' }
+      }
+      openPlayer(id)
+      return { ok: true }
+    },
+    [players, openPlayer],
+  )
 
   const logout = useCallback(() => {
     setCurrentId(null)
-    remove(CURRENT_KEY)
+    removeSession(CURRENT_KEY)
   }, [])
 
   const saveModuleResult = useCallback(
@@ -88,8 +119,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<PlayerContextValue>(
-    () => ({ player, players, loginNew, resume, logout, saveModuleResult, saveFinalResult }),
-    [player, players, loginNew, resume, logout, saveModuleResult, saveFinalResult],
+    () => ({
+      player,
+      players,
+      createProfile,
+      loginExisting,
+      logout,
+      saveModuleResult,
+      saveFinalResult,
+    }),
+    [player, players, createProfile, loginExisting, logout, saveModuleResult, saveFinalResult],
   )
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>

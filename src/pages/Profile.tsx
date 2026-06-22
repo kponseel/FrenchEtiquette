@@ -95,7 +95,7 @@ export default function Profile() {
         style={{ marginTop: 28 }}
         onClick={changePlayer}
       >
-        Changer de joueur
+        Verrouiller &amp; changer de profil
       </button>
 
       <BottomNav />
