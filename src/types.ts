@@ -1,5 +1,8 @@
 // Domain types for L'Étiquette.
 
+/** Niveau de difficulté d'une question (issu du QCM source). */
+export type Difficulty = 'Fondamental' | 'Intermédiaire' | 'Piège'
+
 export interface Question {
   /** Stable, unique id (used for review + drawing the final test). */
   id: string
@@ -11,6 +14,10 @@ export interface Question {
   correctIndex: number
   /** Why the correct answer is correct — shown after answering. */
   explanation: string
+  /** Niveau de difficulté, affiché discrètement pendant le quiz. */
+  difficulty?: Difficulty
+  /** Sous-thème (issu du QCM source) — métadonnée, non affichée pour l'instant. */
+  tag?: string
 }
 
 export interface Module {

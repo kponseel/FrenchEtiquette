@@ -1,4 +1,4 @@
-import type { AttemptResult, Module, Question } from '../types'
+import type { AttemptResult, Difficulty, Module, Question } from '../types'
 
 /** Score minimum (ratio) pour valider un module ou le test final. */
 export const PASS_THRESHOLD = 0.9
@@ -13,6 +13,7 @@ export interface PreparedQuestion {
   choices: string[]
   correctIndex: number
   explanation: string
+  difficulty?: Difficulty
 }
 
 /** Fisher–Yates — renvoie une nouvelle liste mélangée. */
@@ -35,6 +36,7 @@ export function prepareQuestion(q: Question): PreparedQuestion {
     choices: mixed.map((c) => c.text),
     correctIndex: mixed.findIndex((c) => c.i === q.correctIndex),
     explanation: q.explanation,
+    difficulty: q.difficulty,
   }
 }
 

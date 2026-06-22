@@ -18,6 +18,13 @@ import { ChevronLeft } from '../components/icons'
 
 const KEYS = ['A', 'B', 'C', 'D']
 
+/** Classe CSS du badge de difficulté affiché pendant le quiz. */
+const DIFF_CLASS: Record<string, string> = {
+  Fondamental: 'qchip--base',
+  Intermédiaire: 'qchip--mid',
+  Piège: 'qchip--piege',
+}
+
 interface Answer {
   q: PreparedQuestion
   chosen: number
@@ -178,6 +185,11 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
           <span className="eyebrow">
             Question {index + 1} / {questions.length}
           </span>
+          {current.difficulty && (
+            <span className={'qchip ' + (DIFF_CLASS[current.difficulty] ?? '')}>
+              {current.difficulty}
+            </span>
+          )}
         </div>
         <ProgressBar value={(index + (revealed ? 1 : 0)) / questions.length} />
       </div>

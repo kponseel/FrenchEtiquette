@@ -1,5 +1,5 @@
 import { usePlayer } from '../lib/PlayerContext'
-import { ranking } from '../lib/players'
+import { ranking, TOTAL_MODULES } from '../lib/players'
 import BottomNav from '../components/BottomNav'
 
 export default function Leaderboard() {
@@ -33,7 +33,7 @@ export default function Leaderboard() {
                 <span className="rank-row__name">{entry.player.pseudo}</span>
                 <span className="rank-row__title" style={{ display: 'block' }}>
                   {entry.certified ? '✦ ' : ''}
-                  {entry.title} · {entry.modulesPassed}/5 modules
+                  {entry.title} · {entry.modulesPassed}/{TOTAL_MODULES} modules
                 </span>
               </span>
               <span className="rank-row__pts">
