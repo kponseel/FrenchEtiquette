@@ -2,8 +2,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Base path: '/' in local dev, '/frenchetiquette/' on GitHub Pages.
+// The CI workflow sets VITE_BASE; everything else (router basename, manifest,
+// icons, service-worker fallback) derives from it so there is a single source.
+const base = process.env.VITE_BASE ?? '/'
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  base,
   plugins: [
     react(),
     VitePWA({
@@ -19,8 +25,8 @@ export default defineConfig({
         background_color: '#F7F4EE',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
-        scope: '/',
+        start_url: base,
+        scope: base,
         categories: ['education', 'lifestyle'],
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
@@ -35,6 +41,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // SPA fallback so client-side routes resolve once the SW is active.
+        navigateFallback: `${base}index.html`,
       },
       devOptions: {
         enabled: false,
