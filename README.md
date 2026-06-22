@@ -81,8 +81,9 @@ L’examen final tire **50 questions** dans l’ensemble.
 Les réglages du moteur sont dans `src/lib/quiz.ts` :
 
 ```ts
-export const PASS_THRESHOLD = 0.9  // 90 % pour valider
-export const FINAL_TEST_SIZE = 50  // taille du test final
+export const PASS_THRESHOLD = 0.9   // 90 % pour valider
+export const MODULE_TEST_SIZE = 20  // questions tirées par tentative de module
+export const FINAL_TEST_SIZE = 50   // questions tirées pour l'examen final
 ```
 
 ## Note sur le multi-joueurs

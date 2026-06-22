@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Module, ModuleProgress } from '../types'
-import { formatPercent } from '../lib/quiz'
+import { formatPercent, MODULE_TEST_SIZE } from '../lib/quiz'
 import { CheckIcon } from './icons'
 import ProgressBar from './ProgressBar'
 
@@ -40,7 +40,7 @@ export default function ModuleCard({
       </div>
 
       <div className="module-card__meta">
-        <span>{module.questions.length} questions</span>
+        <span>{Math.min(MODULE_TEST_SIZE, module.questions.length)} questions par essai</span>
         <span>
           {passed
             ? 'Module validé'
