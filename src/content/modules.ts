@@ -151,6 +151,136 @@ export const modules: Module[] = [
         explanation:
           'Saucer à la main est à proscrire en société. Dans un cadre intime, on peut le faire avec un morceau de pain piqué sur la fourchette — jamais à pleine main.',
       },
+      {
+        id: 'table-11',
+        prompt: 'Comment tient-on un verre à vin ?',
+        choices: [
+          'Par le pied (la tige)',
+          'Par le calice, à pleine main',
+          'Par le bord, du bout des doigts',
+          'À deux mains, pour le stabiliser',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On tient le verre par le pied : la main ne réchauffe pas le vin et ne laisse pas de traces sur le calice.',
+      },
+      {
+        id: 'table-12',
+        prompt: 'Que fait-on juste avant de boire ?',
+        choices: [
+          'On s’essuie discrètement la bouche avec sa serviette',
+          'On boit directement, la bouche encore pleine',
+          'On souffle sur le verre',
+          'On trinque systématiquement',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On tamponne ses lèvres avec la serviette avant de boire, afin de ne pas laisser de traces grasses sur le verre. On ne boit jamais la bouche pleine.',
+      },
+      {
+        id: 'table-13',
+        prompt: 'Avec quel ustensile ne coupe-t-on traditionnellement pas le poisson ?',
+        choices: [
+          'Un couteau à viande ordinaire',
+          'Un couteau à poisson',
+          'Une fourchette',
+          'Un morceau de pain',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le poisson se mange avec un couvert à poisson ; à défaut, avec la fourchette (aidée d’un peu de pain), mais jamais coupé au couteau à viande.',
+      },
+      {
+        id: 'table-14',
+        prompt: 'Comment mange-t-on la salade en feuilles ?',
+        choices: [
+          'On plie les feuilles avec la fourchette',
+          'On les coupe au couteau',
+          'On les prend avec les doigts',
+          'On les déchire à pleines mains',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On ne coupe pas la salade au couteau : on plie délicatement les feuilles avec la fourchette pour en faire une bouchée.',
+      },
+      {
+        id: 'table-15',
+        prompt: 'Comment se sert-on d’un fromage en pointe (un brie, par exemple) ?',
+        choices: [
+          'En suivant la forme, sans couper « le nez » (la pointe)',
+          'En coupant la pointe, la meilleure part',
+          'En prenant uniquement la croûte',
+          'En se servant n’importe où, au hasard',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On respecte la forme du fromage : pour une pointe, on coupe le long du rayon sans emporter « le nez », afin que chacun ait sa part de cœur.',
+      },
+      {
+        id: 'table-16',
+        prompt: 'Quand sale-t-on son plat ?',
+        choices: [
+          'Après l’avoir goûté',
+          'Avant d’y goûter, par principe',
+          'Jamais, c’est mal vu',
+          'Seulement si l’hôte le propose',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On goûte toujours avant de saler : saler sans avoir goûté laisse entendre au cuisinier qu’on juge son plat mal assaisonné.',
+      },
+      {
+        id: 'table-17',
+        prompt: 'Un plat ne vous tente pas : que faites-vous ?',
+        choices: [
+          'On se sert une petite quantité, sans commentaire',
+          'On refuse en expliquant pourquoi',
+          'On critique discrètement le goût',
+          'On réclame un autre plat',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Par courtoisie envers l’hôte, on accepte une petite quantité et l’on s’abstient de tout commentaire négatif.',
+      },
+      {
+        id: 'table-18',
+        prompt: 'Lors d’un dîner, peut-on demander à se resservir ?',
+        choices: [
+          'Non, on attend que l’hôtesse le propose',
+          'Oui, on se ressert soi-même librement',
+          'Oui, dès que son assiette est vide',
+          'Oui, en tendant son assiette à travers la table',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On ne se ressert pas de sa propre initiative : c’est à la maîtresse de maison de proposer un second service.',
+      },
+      {
+        id: 'table-19',
+        prompt: 'Où pose-t-on la cuillère après avoir tourné son café ?',
+        choices: [
+          'Sur la soucoupe, derrière la tasse',
+          'On la laisse dans la tasse',
+          'Sur la nappe',
+          'On la garde à la main',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Après avoir tourné sans faire tinter, on pose la cuillère sur la soucoupe ; on ne la laisse jamais dans la tasse.',
+      },
+      {
+        id: 'table-20',
+        prompt: 'Vous quittez la table un instant : où mettez-vous votre serviette ?',
+        choices: [
+          'Sur votre chaise',
+          'Pliée sur la table, à gauche',
+          'Sur le dossier, bien dépliée',
+          'Sur votre assiette',
+        ],
+        correctIndex: 0,
+        explanation:
+          'En cours de repas, la serviette se pose sur la chaise. On ne la replace sur la table (à gauche de l’assiette) qu’en fin de repas, en quittant définitivement la table.',
+      },
     ],
   },
 
@@ -291,6 +421,136 @@ export const modules: Module[] = [
         correctIndex: 0,
         explanation:
           'On ouvre la portière pour son invitée, on veille à ce qu’elle soit confortablement installée — manteau et pans de robe à l’intérieur — avant de refermer sans brusquerie.',
+      },
+      {
+        id: 'portes-11',
+        prompt: 'Vous devez éternuer en société : que faites-vous ?',
+        choices: [
+          'On se détourne, on se couvre d’un mouchoir, puis l’on s’excuse',
+          'On éternue librement, c’est naturel',
+          'On retient bruyamment son souffle',
+          'On quitte la pièce en courant',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On se détourne des convives, on se couvre nez et bouche d’un mouchoir (ou du pli du coude), puis l’on s’excuse brièvement.',
+      },
+      {
+        id: 'portes-12',
+        prompt: 'À qui cède-t-on sa place dans les transports ?',
+        choices: [
+          'Aux aînés, femmes enceintes et personnes à mobilité réduite',
+          'À personne, chacun sa place',
+          'Uniquement si on vous le demande',
+          'Seulement aux gens que l’on connaît',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On cède spontanément sa place aux personnes âgées, aux femmes enceintes et aux personnes à mobilité réduite, sans attendre qu’on le sollicite.',
+      },
+      {
+        id: 'portes-13',
+        prompt: 'Vous allez être en retard à un rendez-vous : que faites-vous ?',
+        choices: [
+          'On prévient dès que possible',
+          'On arrive sans prévenir, on s’expliquera sur place',
+          'On prépare une longue excuse',
+          'On annule au dernier moment',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le respect d’autrui commande de prévenir au plus tôt de son retard, afin de ne pas faire attendre sans nouvelle.',
+      },
+      {
+        id: 'portes-14',
+        prompt: 'Dans un ascenseur, en présence d’une dame, un homme…',
+        choices: [
+          'Ôte son chapeau',
+          'Garde chapeau et manteau',
+          'Tourne le dos à la porte',
+          'Engage la conversation à voix haute',
+        ],
+        correctIndex: 0,
+        explanation:
+          'L’ascenseur est un espace clos : un homme y retire son chapeau en présence d’une femme, comme dans tout lieu intérieur.',
+      },
+      {
+        id: 'portes-15',
+        prompt: 'Quand un homme retire-t-il son chapeau ?',
+        choices: [
+          'En entrant dans un lieu privé, un restaurant, ou pour saluer',
+          'Jamais, c’est un accessoire permanent',
+          'Uniquement chez lui',
+          'Seulement la nuit',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le chapeau se garde au-dehors mais se retire en entrant dans un lieu privé, un restaurant, une église, ou pour saluer une connaissance.',
+      },
+      {
+        id: 'portes-16',
+        prompt: 'Pour escorter une dame, que fait un homme ?',
+        choices: [
+          'Il lui offre son bras, qu’elle prend si elle le souhaite',
+          'Il la saisit par la main',
+          'Il la pousse légèrement dans le dos',
+          'Il marche devant pour ouvrir le chemin',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On propose son bras, le coude replié ; la dame y pose la main si elle le souhaite. On ne l’entraîne ni ne la pousse.',
+      },
+      {
+        id: 'portes-17',
+        prompt: 'En arrivant chez quelqu’un, que fait-on de son manteau et de son parapluie ?',
+        choices: [
+          'On les laisse à l’entrée (vestiaire, porte-parapluies)',
+          'On les garde sur soi par politesse',
+          'On les pose sur le canapé du salon',
+          'On les confie d’autorité à un autre invité',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On se défait de son manteau et de son parapluie à l’entrée ; on n’entre pas au salon engoncé dans ses affaires de pluie.',
+      },
+      {
+        id: 'portes-18',
+        prompt: 'Au théâtre, comment gagne-t-on sa place au milieu d’une rangée occupée ?',
+        choices: [
+          'En passant face aux spectateurs déjà assis',
+          'En leur tournant le dos',
+          'En enjambant les sièges',
+          'En attendant l’entracte, quoi qu’il arrive',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On se faufile face aux personnes déjà installées — jamais en leur présentant son dos — avec un mot d’excuse au passage.',
+      },
+      {
+        id: 'portes-19',
+        prompt: 'Chez des hôtes, avant d’allumer une cigarette, que fait-on ?',
+        choices: [
+          'On demande la permission à la maîtresse de maison',
+          'On fume, c’est un droit',
+          'On ouvre une fenêtre et l’on fume sans demander',
+          'On fume à table, entre deux plats',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On ne fume jamais sans avoir obtenu l’accord de la maîtresse de maison ; jamais à table tant que le repas n’est pas achevé.',
+      },
+      {
+        id: 'portes-20',
+        prompt: 'Pour désigner une personne dans une conversation, on évite…',
+        choices: [
+          'De la montrer du doigt',
+          'De prononcer son nom',
+          'De la regarder',
+          'De sourire',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Montrer quelqu’un du doigt est discourtois : on l’indique d’un geste discret de la main ouverte, ou simplement d’un mot.',
       },
     ],
   },
@@ -433,6 +693,131 @@ export const modules: Module[] = [
         explanation:
           'Une bonne présentation ajoute un mot de contexte (« …qui revient d’un voyage en Italie ») afin de fournir une amorce de conversation et de mettre les deux personnes à l’aise.',
       },
+      {
+        id: 'pres-11',
+        prompt: 'Comment s’adresse-t-on à un avocat ou à un notaire ?',
+        choices: ['Maître', 'Docteur', 'Monsieur le Juge', 'Professeur'],
+        correctIndex: 0,
+        explanation:
+          'Les avocats, notaires et huissiers reçoivent le titre de « Maître » — à l’oral comme dans la correspondance.',
+      },
+      {
+        id: 'pres-12',
+        prompt: 'Comment s’adresse-t-on aujourd’hui à une femme adulte ?',
+        choices: [
+          'Madame, quel que soit son statut',
+          'Mademoiselle, par défaut',
+          'Madame ou Mademoiselle, selon l’âge supposé',
+          'Par son seul prénom',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On dit « Madame » à toute femme adulte. « Mademoiselle », abandonné dans les usages officiels, n’est plus de mise.',
+      },
+      {
+        id: 'pres-13',
+        prompt: 'Comment doit être une poignée de main ?',
+        choices: [
+          'Franche et brève, en regardant la personne',
+          'Molle et prolongée',
+          'Aussi écrasante que possible',
+          'Donnée sans un regard',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Une bonne poignée de main est franche mais sans excès, brève, et accompagnée d’un regard. Ni molle, ni broyante.',
+      },
+      {
+        id: 'pres-14',
+        prompt: 'On vous remet une carte de visite : que faites-vous ?',
+        choices: [
+          'On la regarde un instant avant de la ranger soigneusement',
+          'On la range aussitôt, sans un regard',
+          'On y prend des notes devant la personne',
+          'On la pose et on l’oublie sur la table',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On marque de l’attention en lisant la carte un instant avant de la ranger avec soin ; la ranger sans la regarder est cavalier.',
+      },
+      {
+        id: 'pres-15',
+        prompt: 'En entrant dans une petite boutique, que fait-on ?',
+        choices: [
+          'On salue d’un « Bonjour »',
+          'On va droit au rayon, sans un mot',
+          'On attend d’être salué le premier',
+          'On salue seulement si l’on achète',
+        ],
+        correctIndex: 0,
+        explanation:
+          'En France, on salue en entrant dans un commerce et l’on dit « Au revoir » en sortant : c’est une marque élémentaire de civilité.',
+      },
+      {
+        id: 'pres-16',
+        prompt: 'Comment s’adresse-t-on par défaut à une personne que l’on ne connaît pas ?',
+        choices: [
+          'On la vouvoie',
+          'On la tutoie pour créer du lien',
+          'On alterne selon l’humeur',
+          'On évite tout pronom',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le vouvoiement est la marque de respect par défaut envers tout adulte que l’on ne connaît pas.',
+      },
+      {
+        id: 'pres-17',
+        prompt: 'En France, le nombre de bises…',
+        choices: [
+          'Varie selon les régions (de deux à quatre)',
+          'Est toujours de deux, partout',
+          'Est fixé à trois sur tout le territoire',
+          'N’existe pas dans les usages',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le nombre de bises dépend des régions. Dans le doute, on observe son interlocuteur ou l’on s’en tient à la poignée de main.',
+      },
+      {
+        id: 'pres-18',
+        prompt: 'Comment montre-t-on de l’attention après avoir été présenté ?',
+        choices: [
+          'En employant le nom de la personne dans la conversation',
+          'En l’oubliant aussitôt',
+          'En lui donnant un surnom',
+          'En lui faisant répéter son nom plusieurs fois',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Retenir et employer le nom de son interlocuteur est une marque d’attention appréciée et le signe d’un intérêt sincère.',
+      },
+      {
+        id: 'pres-19',
+        prompt: 'Vous avez oublié le nom d’une personne : que faites-vous ?',
+        choices: [
+          'On s’en excuse et l’on demande poliment de le rappeler',
+          'On invente un nom approchant',
+          'On évite de lui parler tout le reste de la soirée',
+          'On interroge les autres pour deviner',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Mieux vaut s’excuser simplement et demander le nom que de feindre ou d’inventer : l’honnêteté courtoise est toujours bien reçue.',
+      },
+      {
+        id: 'pres-20',
+        prompt: 'En arrivant à une réception où vous ne connaissez pas tout le monde, par qui commencez-vous ?',
+        choices: [
+          'On salue et l’on se présente d’abord aux hôtes',
+          'On se sert un verre avant tout',
+          'On attend dans un coin qu’on vienne à soi',
+          'On ne salue que les personnes déjà connues',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On va d’abord saluer la maîtresse et le maître de maison ; ce sont eux qui, ensuite, vous présentent à leurs autres invités.',
+      },
     ],
   },
 
@@ -574,6 +959,136 @@ export const modules: Module[] = [
         explanation:
           'Le smoking est une tenue du soir. Avant 18 heures, on lui préfère le costume sombre ou, pour les grandes occasions diurnes, la jaquette.',
       },
+      {
+        id: 'tenue-11',
+        prompt: 'Quand porte-t-on la jaquette (morning dress) ?',
+        choices: [
+          'Pour les cérémonies de jour (un mariage en journée)',
+          'Pour une soirée dansante',
+          'Pour faire du sport',
+          'Au bureau, au quotidien',
+        ],
+        correctIndex: 0,
+        explanation:
+          'La jaquette est la tenue des grandes cérémonies de journée. Le soir, on lui préfère le smoking ou l’habit.',
+      },
+      {
+        id: 'tenue-12',
+        prompt: 'Les boutons de manchette se portent avec…',
+        choices: [
+          'Une chemise à poignets mousquetaire (à revers)',
+          'N’importe quelle chemise',
+          'Une chemise à poignets boutonnés classiques',
+          'Un simple polo',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Les boutons de manchette équipent les poignets « mousquetaire », repliés sur eux-mêmes ; ils ne vont pas sur un poignet à boutonnière simple.',
+      },
+      {
+        id: 'tenue-13',
+        prompt: 'Pour un smoking, quel nœud papillon privilégie-t-on ?',
+        choices: [
+          'Un nœud à nouer soi-même',
+          'Un nœud préformé, à clip',
+          'Une cravate longue noire',
+          'Pas de nœud du tout',
+        ],
+        correctIndex: 0,
+        explanation:
+          'L’élégance veut un nœud papillon que l’on noue soi-même ; le nœud préformé, trop régulier, trahit l’apprêt.',
+      },
+      {
+        id: 'tenue-14',
+        prompt: 'Quelles chaussures porte-t-on avec un smoking ?',
+        choices: [
+          'Des souliers noirs (vernis ou richelieu)',
+          'Des souliers marron',
+          'Des mocassins en daim clair',
+          'Des baskets blanches',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le smoking s’accompagne de souliers noirs, idéalement vernis ou, à défaut, de richelieus noirs bien cirés. Jamais de marron.',
+      },
+      {
+        id: 'tenue-15',
+        prompt: 'Quelle est la règle pour mêler les motifs (costume, chemise, cravate) ?',
+        choices: [
+          'En limiter le nombre et varier les échelles',
+          'Accumuler le plus de motifs possible',
+          'Toujours assortir des motifs identiques',
+          'N’associer que des rayures de même largeur',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On évite d’empiler les motifs : au plus deux ou trois, d’échelles différentes, pour que l’œil distingue chaque pièce.',
+      },
+      {
+        id: 'tenue-16',
+        prompt: 'Peut-on porter à la fois une ceinture et des bretelles ?',
+        choices: [
+          'Non, on choisit l’une ou les autres',
+          'Oui, pour plus de maintien',
+          'Oui, si elles sont de la même couleur',
+          'Seulement avec un smoking',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Ceinture et bretelles ne se portent jamais ensemble : elles remplissent le même office. On tranche pour l’une ou pour les autres.',
+      },
+      {
+        id: 'tenue-17',
+        prompt: 'Une veste croisée, une fois que l’on est assis…',
+        choices: [
+          'Reste boutonnée',
+          'Se déboutonne entièrement',
+          'Se porte toujours ouverte',
+          'Ne se boutonne qu’une fois assis',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Contrairement à la veste droite, la veste croisée se garde boutonnée, même assis — un bouton intérieur (la « bride ») la maintient.',
+      },
+      {
+        id: 'tenue-18',
+        prompt: 'Quelle est la bonne longueur d’un pantalon de costume ?',
+        choices: [
+          'Il effleure la chaussure avec un léger pli (« break »)',
+          'Il s’arrête bien au-dessus de la cheville',
+          'Il recouvre entièrement le talon',
+          'Il flotte sans jamais toucher la chaussure',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le bas du pantalon pose légèrement sur la chaussure en formant un petit pli (« break ») — ni trop court, ni s’amoncelant sur le pied.',
+      },
+      {
+        id: 'tenue-19',
+        prompt: 'Quel est le bon usage des bijoux pour un homme élégant ?',
+        choices: [
+          'La sobriété : alliance, montre, éventuels boutons de manchette',
+          'Plusieurs bagues à chaque main',
+          'Chaînes et gourmettes bien apparentes',
+          'Tout ce qui brille, pour se distinguer',
+        ],
+        correctIndex: 0,
+        explanation:
+          'L’élégance masculine se mesure à la discrétion : alliance, montre sobre et, le cas échéant, boutons de manchette. L’excès nuit.',
+      },
+      {
+        id: 'tenue-20',
+        prompt: 'Que signifie « tenue de ville » sur une invitation ?',
+        choices: [
+          'Un costume, avec cravate',
+          'Un smoking',
+          'Un jean et une veste décontractée',
+          'Une tenue entièrement libre',
+        ],
+        correctIndex: 0,
+        explanation:
+          '« Tenue de ville » appelle un costume (de préférence sombre) avec chemise et cravate — élégant, sans atteindre le degré du smoking.',
+      },
     ],
   },
 
@@ -714,6 +1229,136 @@ export const modules: Module[] = [
         correctIndex: 0,
         explanation:
           'On garde une voix posée et un rire discret. Parler fort ou rire bruyamment attire l’attention et déroge à la discrétion qui sied au bon ton.',
+      },
+      {
+        id: 'conv-11',
+        prompt: 'Quel présent apporte-t-on classiquement à un dîner ?',
+        choices: [
+          'Des chocolats, ou des fleurs livrées avant',
+          'Un plat cuisiné à servir le soir même',
+          'Rien, l’invitation suffit',
+          'De l’argent, pour participer',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Chocolats, douceurs ou fleurs (livrées avant) sont des présents sûrs. On n’apporte pas un plat, qui bousculerait le menu prévu.',
+      },
+      {
+        id: 'conv-12',
+        prompt: 'Vous offrez une bouteille de vin : l’hôte doit-il l’ouvrir le soir même ?',
+        choices: [
+          'Non, c’est un cadeau dont il dispose à sa guise',
+          'Oui, immédiatement, pour vous honorer',
+          'Oui, sinon c’est une offense',
+          'Seulement si vous insistez',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le vin offert est un cadeau : l’hôte, qui a composé ses accords, n’est nullement tenu de le servir le soir même.',
+      },
+      {
+        id: 'conv-13',
+        prompt: 'À un dîner, comment prend-on congé ?',
+        choices: [
+          'On remercie et l’on salue les hôtes avant de partir',
+          'On s’éclipse sans rien dire',
+          'On annonce bruyamment son départ à toute la table',
+          'On attend que les hôtes invitent à partir',
+        ],
+        correctIndex: 0,
+        explanation:
+          'À un dîner, on prend toujours congé des hôtes en les remerciant. « Filer à l’anglaise » ne se tolère qu’aux très grandes réceptions.',
+      },
+      {
+        id: 'conv-14',
+        prompt: 'Vous recevez une invitation : comment y répondez-vous ?',
+        choices: [
+          'On répond rapidement, que l’on vienne ou non',
+          'On ne répond que si l’on compte venir',
+          'On répond le jour même de l’événement',
+          'On ne répond pas, on verra sur le moment',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On répond sans tarder à une invitation (« RSVP »), par l’affirmative comme par la négative, pour permettre à l’hôte de s’organiser.',
+      },
+      {
+        id: 'conv-15',
+        prompt: 'Combien de temps reste-t-on après le repas ?',
+        choices: [
+          'Un moment, au salon, sans toutefois s’éterniser',
+          'On part dès le dessert avalé',
+          'On reste jusqu’au petit matin, par politesse',
+          'On part avant le café pour ne pas déranger',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Partir aussitôt le repas fini est cavalier ; s’incruster tard l’est tout autant. On prolonge un moment au salon, puis l’on prend congé.',
+      },
+      {
+        id: 'conv-16',
+        prompt: 'Comment réagit-on à un compliment ?',
+        choices: [
+          'On remercie simplement',
+          'On le nie en se rabaissant',
+          'On renvoie aussitôt un compliment forcé',
+          'On l’ignore poliment',
+        ],
+        correctIndex: 0,
+        explanation:
+          'À un compliment, un simple « merci » suffit. Se rabaisser ou surenchérir met inutilement l’autre dans l’embarras.',
+      },
+      {
+        id: 'conv-17',
+        prompt: 'Quel est le secret d’un bon causeur ?',
+        choices: [
+          'S’intéresser sincèrement à son interlocuteur',
+          'Parler de soi le plus longtemps possible',
+          'Avoir toujours le dernier mot',
+          'Multiplier les traits d’esprit',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Le charme d’une conversation tient moins à ce que l’on dit qu’à l’intérêt sincère porté à l’autre et aux questions qu’on lui pose.',
+      },
+      {
+        id: 'conv-18',
+        prompt: 'À table, vous devez vous moucher : comment faites-vous ?',
+        choices: [
+          'Discrètement, dans un mouchoir, en se détournant',
+          'Bruyamment, pour en finir vite',
+          'Dans sa serviette de table',
+          'On renifle plutôt que de se moucher',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On se mouche discrètement dans un mouchoir en se détournant ; si cela doit être bruyant, on s’absente un instant. Jamais dans la serviette.',
+      },
+      {
+        id: 'conv-19',
+        prompt: 'Lors d’une conversation en tête-à-tête, que fait-on de son téléphone ?',
+        choices: [
+          'On l’ignore : toute l’attention va à l’interlocuteur',
+          'On le consulte dès qu’il vibre',
+          'On le pose en évidence sur la table',
+          'On répond « un instant » à chaque message',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Donner son attention pleine et entière est la première des politesses : le téléphone reste rangé et silencieux.',
+      },
+      {
+        id: 'conv-20',
+        prompt: 'Comment met-on fin poliment à une conversation ?',
+        choices: [
+          'Par une formule courtoise, avant de prendre congé',
+          'En s’éloignant brusquement',
+          'En regardant ailleurs jusqu’à ce que l’autre cesse',
+          'En interrompant sèchement',
+        ],
+        correctIndex: 0,
+        explanation:
+          'On clôt l’échange par une formule aimable (« Je ne veux pas vous accaparer… ») avant de s’éloigner sans brusquerie.',
       },
     ],
   },

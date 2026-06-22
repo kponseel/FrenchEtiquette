@@ -818,3 +818,106 @@ h1.display {
   margin: 0 7px;
   color: var(--ink-faint);
 }
+
+/* =========================================================================
+   Animations & micro-interactions
+   ========================================================================= */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.018);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes sealGlow {
+  0%,
+  100% {
+    box-shadow: 0 6px 18px rgba(146, 113, 50, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 28px rgba(146, 113, 50, 0.5);
+  }
+}
+
+/* Entrée en cascade des éléments de liste (modules, classement, révision…) */
+.list > *,
+.review-item {
+  animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.list > *:nth-child(1) { animation-delay: 0.02s; }
+.list > *:nth-child(2) { animation-delay: 0.07s; }
+.list > *:nth-child(3) { animation-delay: 0.12s; }
+.list > *:nth-child(4) { animation-delay: 0.17s; }
+.list > *:nth-child(5) { animation-delay: 0.22s; }
+.list > *:nth-child(6) { animation-delay: 0.27s; }
+.list > *:nth-child(n + 7) { animation-delay: 0.3s; }
+
+/* Transition d'une question à l'autre dans le QCM */
+.qblock {
+  animation: slideIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Petit « pop » sur la bonne réponse au moment de la révélation */
+.choice.is-correct {
+  animation: pop 0.36s ease;
+}
+
+/* Survol des cartes (desktop / pointeur fin) */
+@media (hover: hover) {
+  .module-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--gold-soft);
+  }
+  .rank-row:hover {
+    border-color: var(--gold-soft);
+  }
+}
+
+/* Halo doux et animé du sceau du certificat */
+.certificate__seal {
+  animation: sealGlow 3.4s ease-in-out infinite;
+}
+
+/* Accessibilité clavier : anneau de focus discret et doré */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.btn:focus-visible {
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--gold-soft);
+  color: var(--ink);
+}

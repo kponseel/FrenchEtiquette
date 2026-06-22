@@ -182,14 +182,15 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
         <ProgressBar value={(index + (revealed ? 1 : 0)) / questions.length} />
       </div>
 
-      <h1
-        className="serif"
-        style={{ fontSize: '1.6rem', lineHeight: 1.2, marginBottom: 22 }}
-      >
-        {current.prompt}
-      </h1>
+      <div className="qblock" key={current.id}>
+        <h1
+          className="serif"
+          style={{ fontSize: '1.6rem', lineHeight: 1.2, marginBottom: 22 }}
+        >
+          {current.prompt}
+        </h1>
 
-      <div className="stack" style={{ ['--gap' as string]: '12px' }}>
+        <div className="stack" style={{ ['--gap' as string]: '12px' }}>
         {current.choices.map((choice, i) => {
           let cls = 'choice'
           let mark = ''
@@ -217,6 +218,7 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
             </button>
           )
         })}
+        </div>
       </div>
 
       {revealed && (
