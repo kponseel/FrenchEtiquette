@@ -1,10 +1,13 @@
-import type { AttemptResult, Module, Question } from '../types'
+import type { AttemptResult, Difficulty, Module, Question } from '../types'
 
 /** Score minimum (ratio) pour valider un module ou le test final. */
 export const PASS_THRESHOLD = 0.9
 
 /** Nombre de questions tirées pour le test final de certification. */
 export const FINAL_TEST_SIZE = 50
+
+/** Nombre de questions tirées à chaque tentative d'un module. */
+export const MODULE_TEST_SIZE = 20
 
 /** Une question préparée pour une session : réponses mélangées. */
 export interface PreparedQuestion {
@@ -13,6 +16,7 @@ export interface PreparedQuestion {
   choices: string[]
   correctIndex: number
   explanation: string
+  difficulty?: Difficulty
 }
 
 /** Fisher–Yates — renvoie une nouvelle liste mélangée. */
@@ -35,12 +39,21 @@ export function prepareQuestion(q: Question): PreparedQuestion {
     choices: mixed.map((c) => c.text),
     correctIndex: mixed.findIndex((c) => c.i === q.correctIndex),
     explanation: q.explanation,
+    difficulty: q.difficulty,
   }
 }
 
-/** Prépare une session de QCM : questions mélangées, réponses mélangées. */
-export function prepareQuiz(questions: readonly Question[]): PreparedQuestion[] {
-  return shuffle(questions).map(prepareQuestion)
+/**
+ * Prépare une session de QCM : on tire `size` questions au hasard dans le
+ * module (toutes si le module en compte moins), questions et réponses mélangées.
+ */
+export function prepareQuiz(
+  questions: readonly Question[],
+  size: number = MODULE_TEST_SIZE,
+): PreparedQuestion[] {
+  return shuffle(questions)
+    .slice(0, Math.min(size, questions.length))
+    .map(prepareQuestion)
 }
 
 /** Tire les questions du test final dans l'ensemble des modules. */

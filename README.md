@@ -1,7 +1,7 @@
 # L’Étiquette — *Are you a gentleman?*
 
 PWA mobile-first pour tester sa connaissance de l’**étiquette à la française**
-(savoir-vivre, art de la table, civilité, présentations, élégance…) et obtenir
+(savoir-vivre : affaires, conversation, art de la table, élégance…) et obtenir
 un **certificat de Gentleman**.
 
 > Esthétique « Ivoire & Encre » : fond ivoire, encre bleu-nuit, filets dorés,
@@ -31,14 +31,19 @@ npm install
 npm run dev        # serveur de développement
 npm run build      # typecheck + build de production (génère le service worker)
 npm run preview    # sert le build de production
-npm run icons      # régénère les icônes PNG de la PWA depuis le motif vectoriel
+npm run icons         # régénère les icônes PNG de la PWA depuis le motif vectoriel
+npm run build:content # régénère src/content/modules.ts depuis le CSV source
 ```
 
 ## Structure
 
 ```
+content/
+└── qcm-savoir-vivre.csv   ← SOURCE des questions (on édite ici)
+scripts/
+└── build-modules.mjs      ← Générateur : CSV → src/content/modules.ts
 src/
-├── content/modules.ts     ← LE CONTENU (modules + questions). À compléter ici.
+├── content/modules.ts     ← Contenu GÉNÉRÉ (ne pas éditer à la main)
 ├── types.ts               ← Modèles de données (Question, Module, Player…)
 ├── lib/
 │   ├── storage.ts         ← Accès localStorage (point unique à remplacer pour un backend)
@@ -53,27 +58,32 @@ src/
 
 ## Ajouter / modifier des questions
 
-Tout se passe dans **`src/content/modules.ts`**. Une question :
+Le contenu provient d’un **unique fichier CSV** : `content/qcm-savoir-vivre.csv`
+(colonnes : `Ref, Theme, Sous-theme, Statut, Difficulte, Question, A, B, C, D,
+Bonne_reponse, Explication`). Après édition, régénérez le TypeScript :
 
-```ts
-{
-  id: 'table-11',                 // identifiant unique stable
-  prompt: 'La question posée ?',
-  choices: ['Réponse A', 'B', 'C', 'D'], // exactement 4
-  correctIndex: 0,                // index (0-3) de la bonne réponse
-  explanation: 'Pourquoi cette réponse est la bonne.',
-}
+```bash
+npm run build:content
 ```
 
-Le contenu actuel est un **exemple** (~10 questions par module). Objectif visé :
-**20 questions minimum par module** et **50 pour le test final** (le test final tire
-automatiquement dans l’ensemble des questions des modules).
+- Les questions sont **regroupées en modules** d’après le préfixe de `Ref`
+  (`T1-…`, `T2-…`, …) ; titres, sous-titres et emojis des modules sont définis
+  dans l’objet `META` de `scripts/build-modules.mjs`.
+- `Bonne_reponse` (`A`–`D`) devient `correctIndex` (0–3).
+- `Difficulte` (`Fondamental` / `Intermédiaire` / `Piège`) s’affiche en pastille
+  pendant le quiz.
+- **`src/content/modules.ts` est généré** — ne l’éditez pas à la main.
+
+Contenu actuel : **182 questions** en **4 thèmes** — Affaires & Gentleman’s
+Agreement, Conversation & Discrétion, Table & Réceptions, Élégance & Dress Code.
+L’examen final tire **50 questions** dans l’ensemble.
 
 Les réglages du moteur sont dans `src/lib/quiz.ts` :
 
 ```ts
-export const PASS_THRESHOLD = 0.9  // 90 % pour valider
-export const FINAL_TEST_SIZE = 50  // taille du test final
+export const PASS_THRESHOLD = 0.9   // 90 % pour valider
+export const MODULE_TEST_SIZE = 20  // questions tirées par tentative de module
+export const FINAL_TEST_SIZE = 50   // questions tirées pour l'examen final
 ```
 
 ## Note sur le multi-joueurs

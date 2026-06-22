@@ -469,6 +469,35 @@ h1.display {
   color: var(--ink-faint);
 }
 
+/* Pastille de difficulté (quiz en cours) */
+.qchip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+.qchip--base {
+  color: var(--success);
+  border-color: rgba(62, 124, 90, 0.35);
+  background: var(--success-bg);
+}
+.qchip--mid {
+  color: var(--gold-deep);
+  border-color: var(--gold-soft);
+  background: rgba(184, 146, 74, 0.08);
+}
+.qchip--piege {
+  color: var(--error);
+  border-color: rgba(162, 58, 46, 0.32);
+  background: var(--error-bg);
+}
+
 /* ------------------------------------------------------------- Choices */
 .choice {
   display: flex;
