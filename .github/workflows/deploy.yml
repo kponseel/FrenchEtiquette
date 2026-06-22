@@ -1,10 +1,13 @@
 name: Deploy to GitHub Pages
 
 on:
+  # Le site en ligne suit main. Le déploiement Pages n'est autorisé que
+  # depuis main (règle d'environnement github-pages) ; on n'écoute donc
+  # que main pour éviter des runs « deploy » voués à échouer sur les
+  # branches de développement.
   push:
     branches:
       - main
-      - claude/intelligent-lovelace-4xroiq
   workflow_dispatch:
 
 # Permissions needed for the GitHub Pages deployment.
