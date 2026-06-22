@@ -21,6 +21,8 @@ export default function Login() {
   const [createdId, setCreatedId] = useState('')
   const [createdPin, setCreatedPin] = useState('')
   const [copied, setCopied] = useState(false)
+  // Email saisi uniquement pour s'envoyer le code à la création — jamais stocké.
+  const [email, setEmail] = useState('')
 
   function onPinChange(value: string) {
     setPin(value.replace(/\D/g, '').slice(0, PIN_MAX))
@@ -83,14 +85,24 @@ export default function Login() {
     }
   }
 
-  function mailtoHref() {
+  function mailtoHref(to: string) {
     const subject = 'Mon code d’accès — L’Étiquette'
     const body =
       `Bonjour,\n\n` +
       `Voici le code d’accès à mon profil « ${pseudo} » sur L’Étiquette :\n\n` +
       `Code : ${createdPin}\n\n` +
       `À conserver pour retrouver ma progression. 🎩`
-    return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  }
+
+  function sendByEmail() {
+    const to = email.trim()
+    if (!/^\S+@\S+\.\S+$/.test(to)) {
+      setError('Indiquez une adresse email valide pour recevoir le code.')
+      return
+    }
+    // Ouvre l'app mail avec le code pré-rempli ; l'adresse n'est pas conservée.
+    window.location.href = mailtoHref(to)
   }
 
   return (
@@ -262,14 +274,30 @@ export default function Login() {
             </p>
             <div className="pincode">{createdPin}</div>
           </div>
-          <div className="stack" style={{ ['--gap' as string]: '10px' }}>
-            <button type="button" className="btn btn--ghost btn--block" onClick={copyPin}>
-              {copied ? 'Copié ✓' : 'Copier le code'}
-            </button>
-            <a className="btn btn--ghost btn--block" href={mailtoHref()}>
-              Recevoir par email
-            </a>
-          </div>
+          <button type="button" className="btn btn--ghost btn--block" onClick={copyPin}>
+            {copied ? 'Copié ✓' : 'Copier le code'}
+          </button>
+          <label className="field">
+            <span className="field__label">Recevoir le code par email (facultatif)</span>
+            <input
+              className="input"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="vous@exemple.fr"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (error) setError(null)
+              }}
+            />
+            <span className="faint" style={{ display: 'block', marginTop: 8, fontSize: '0.78rem' }}>
+              Utilisée une seule fois pour vous envoyer le code — jamais enregistrée.
+            </span>
+          </label>
+          <button type="button" className="btn btn--ghost btn--block" onClick={sendByEmail}>
+            Envoyer le code par email
+          </button>
           {error && <p className="form-error">{error}</p>}
           <button
             type="button"
