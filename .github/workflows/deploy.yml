@@ -41,11 +41,6 @@ jobs:
           # Must match the repository name's exact case (Pages is case-sensitive).
           VITE_BASE: /FrenchEtiquette/
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
