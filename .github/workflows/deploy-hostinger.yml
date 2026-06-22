@@ -1,0 +1,69 @@
+name: Deploy to Hostinger
+
+# Déploie l'app + l'API sur etiquette.estim.pro à chaque push sur main.
+# Lançable aussi à la main (Actions → Run workflow) pour tester depuis une
+# branche avant de fusionner.
+#
+# Secrets requis (Settings → Secrets and variables → Actions) :
+#   HOSTINGER_SSH_HOST     ex. 72.60.93.206
+#   HOSTINGER_SSH_PORT     ex. 65002
+#   HOSTINGER_SSH_USER     ex. u170442813
+#   HOSTINGER_SSH_KEY      clé privée SSH (dont la publique est ajoutée dans hPanel)
+#   HOSTINGER_DEPLOY_PATH  racine du sous-domaine, ex.
+#                          /home/u170442813/domains/etiquette.estim.pro/public_html
+#
+# La base de données SQLite (api/data/letiquette.sqlite) n'est JAMAIS touchée :
+# elle est exclue des deux synchronisations.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: hostinger
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        # Pas de VITE_BASE → base '/' (racine du sous-domaine).
+        # Pas de VITE_API_BASE → l'app appelle '/api/' (même origine).
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "${{ secrets.HOSTINGER_SSH_PORT }}" \
+            "${{ secrets.HOSTINGER_SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy front-end (ne touche pas /api)
+        run: |
+          rsync -rltvz --delete --exclude='/api' \
+            -e "ssh -i ~/.ssh/id_deploy -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=accept-new" \
+            dist/ \
+            "${{ secrets.HOSTINGER_SSH_USER }}@${{ secrets.HOSTINGER_SSH_HOST }}:${{ secrets.HOSTINGER_DEPLOY_PATH }}/"
+
+      - name: Deploy API (ne touche pas la base de données)
+        run: |
+          rsync -rltvz --delete --exclude='letiquette.sqlite*' \
+            -e "ssh -i ~/.ssh/id_deploy -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=accept-new" \
+            api/ \
+            "${{ secrets.HOSTINGER_SSH_USER }}@${{ secrets.HOSTINGER_SSH_HOST }}:${{ secrets.HOSTINGER_DEPLOY_PATH }}/api/"

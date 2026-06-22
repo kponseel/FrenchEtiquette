@@ -1,0 +1,22 @@
+# L'Étiquette — service du SPA sur etiquette.estim.pro
+#
+# 1. /api est servi par PHP (on n'y touche pas).
+# 2. Les fichiers et dossiers existants sont servis tels quels (assets, icônes…).
+# 3. Toute autre URL renvoie index.html : c'est le routage côté client (React
+#    Router) qui prend le relais — indispensable pour rafraîchir /classement,
+#    /profil, etc. sans erreur 404.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Laisse l'API tranquille.
+    RewriteRule ^api(/|$) - [L]
+
+    # Sert les fichiers/dossiers réels directement.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Tout le reste → l'app.
+    RewriteRule ^ index.html [L]
+</IfModule>

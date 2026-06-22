@@ -43,6 +43,11 @@ jobs:
           # Served from https://kponseel.github.io/FrenchEtiquette/
           # Must match the repository name's exact case (Pages is case-sensitive).
           VITE_BASE: /FrenchEtiquette/
+          # L'app vit désormais sur etiquette.estim.pro ; cette copie GitHub Pages
+          # est un miroir qui pointe vers la même API (CORS ouvert côté serveur).
+          # Nécessite que le sous-domaine soit en HTTPS. Pour retirer le miroir,
+          # désactivez ce workflow.
+          VITE_API_BASE: https://etiquette.estim.pro/api/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

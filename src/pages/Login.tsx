@@ -8,7 +8,7 @@ import type { Player } from '../types'
 type View = 'home' | 'unlock' | 'saved'
 
 export default function Login() {
-  const { createProfile, loginExisting, players } = usePlayer()
+  const { createProfile, loginExisting, players, loadError } = usePlayer()
   const navigate = useNavigate()
 
   const [view, setView] = useState<View>('home')
@@ -58,11 +58,6 @@ export default function Login() {
   }
 
   function selectProfile(p: Player) {
-    // Profil hérité sans code : accès direct, sans demander de PIN.
-    if (!p.pinHash) {
-      void openDirect(p.id, '')
-      return
-    }
     setSelected(p)
     setPin('')
     setError(null)
@@ -125,6 +120,14 @@ export default function Login() {
 
       {view === 'home' && (
         <>
+          {loadError && (
+            <p
+              className="form-error"
+              style={{ textAlign: 'center', marginBottom: 16 }}
+            >
+              {loadError} Vérifiez votre connexion, puis réessayez.
+            </p>
+          )}
           <form onSubmit={handleCreate} className="stack" style={{ ['--gap' as string]: '16px' }}>
             <label className="field">
               <span className="field__label">Choisissez votre nom</span>
@@ -158,7 +161,7 @@ export default function Login() {
                 aria-invalid={!!error}
               />
               <span className="faint" style={{ display: 'block', marginTop: 8, fontSize: '0.78rem' }}>
-                Il protège l’accès à votre profil sur cet appareil.
+                Il protège l’accès à votre profil, depuis n’importe quel appareil.
               </span>
             </label>
             {error && <p className="form-error">{error}</p>}
@@ -174,7 +177,7 @@ export default function Login() {
           {players.length > 0 && (
             <div style={{ marginTop: 34 }}>
               <p className="eyebrow center" style={{ marginBottom: 14 }}>
-                Profils sur cet appareil
+                Reprendre un profil
               </p>
               <div className="list">
                 {players.map((p) => (

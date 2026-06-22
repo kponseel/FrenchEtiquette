@@ -8,13 +8,30 @@ import Leaderboard from './pages/Leaderboard'
 import Profile from './pages/Profile'
 import type { JSX } from 'react'
 
+function Splash() {
+  return (
+    <div className="screen screen--centered">
+      <div className="center">
+        <div className="brandmark">
+          <span className="brandmark__monogram">É</span>
+        </div>
+        <p className="muted" style={{ marginTop: 16 }}>
+          Un instant…
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function RequireAuth({ children }: { children: JSX.Element }) {
-  const { player } = usePlayer()
+  const { player, ready } = usePlayer()
+  if (!ready) return <Splash />
   return player ? children : <Navigate to="/" replace />
 }
 
 function RootRedirect() {
-  const { player } = usePlayer()
+  const { player, ready } = usePlayer()
+  if (!ready) return <Splash />
   return player ? <Navigate to="/accueil" replace /> : <Login />
 }
 

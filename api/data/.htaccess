@@ -1,0 +1,9 @@
+# Interdit tout accès HTTP direct au dossier de données (la base SQLite).
+# Le fichier n'est lu que par PHP, jamais servi au navigateur.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

@@ -6,6 +6,11 @@ dist-ssr
 .vite
 *.tsbuildinfo
 
+# Base de données SQLite locale (ne jamais committer)
+api/data/*.sqlite
+api/data/*.sqlite-*
+.env
+
 # editor
 .vscode/*
 !.vscode/extensions.json
