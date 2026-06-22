@@ -30,34 +30,3 @@ export function remove(key: string): void {
     /* ignore */
   }
 }
-
-// --- Variantes par session (sessionStorage) -------------------------------
-// Survivent à un rechargement de page, mais pas à la fermeture de l'app/onglet.
-// Utilisé pour l'id du profil courant : le code PIN est ainsi redemandé à
-// chaque nouvelle ouverture, sans déconnecter sur un simple refresh.
-
-export function readSession<T>(key: string, fallback: T): T {
-  try {
-    const raw = sessionStorage.getItem(PREFIX + key)
-    if (raw == null) return fallback
-    return JSON.parse(raw) as T
-  } catch {
-    return fallback
-  }
-}
-
-export function writeSession<T>(key: string, value: T): void {
-  try {
-    sessionStorage.setItem(PREFIX + key, JSON.stringify(value))
-  } catch {
-    /* ignore */
-  }
-}
-
-export function removeSession(key: string): void {
-  try {
-    sessionStorage.removeItem(PREFIX + key)
-  } catch {
-    /* ignore */
-  }
-}

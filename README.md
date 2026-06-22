@@ -96,6 +96,6 @@ pour un classement partagé ne demande de réécrire que ces fichiers, sans touc
 
 L’accès à un profil est gardé par un **code PIN** (`src/lib/pin.ts`), stocké
 uniquement sous forme de **hachage SHA-256 salé** — jamais en clair. C’est une
-protection légère, adaptée à un jeu sans données personnelles. L’id du profil
-courant vit en `sessionStorage` : le code est donc redemandé à chaque
-réouverture de l’app, mais pas sur un simple rechargement de page.
+protection légère, adaptée à un jeu sans données personnelles. On reste connecté
+d’une session à l’autre ; le code n’est redemandé que pour ouvrir un autre
+profil ou après un verrouillage explicite (« Verrouiller & changer de profil »).

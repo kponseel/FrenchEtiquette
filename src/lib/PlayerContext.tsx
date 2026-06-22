@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { AttemptResult, Player } from '../types'
-import { readSession, removeSession, writeSession } from './storage'
+import { read, remove, write } from './storage'
 import {
   createPlayer,
   isPseudoTaken,
@@ -47,11 +47,11 @@ const PlayerContext = createContext<PlayerContextValue | null>(null)
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [players, setPlayers] = useState<Player[]>(() => loadPlayers())
-  // L'id courant vit dans sessionStorage : il survit à un rechargement de page
-  // pendant la session, mais pas à la fermeture de l'app → le code PIN est
-  // redemandé à chaque nouvelle ouverture.
+  // L'id courant est persisté (localStorage) : on reste connecté d'une session
+  // à l'autre. Le code PIN n'est redemandé que pour ouvrir un autre profil ou
+  // après un verrouillage explicite (« Verrouiller & changer de profil »).
   const [currentId, setCurrentId] = useState<string | null>(() =>
-    readSession<string | null>(CURRENT_KEY, null),
+    read<string | null>(CURRENT_KEY, null),
   )
 
   const player = useMemo(
@@ -61,7 +61,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const openPlayer = useCallback((id: string) => {
     setCurrentId(id)
-    writeSession(CURRENT_KEY, id)
+    write(CURRENT_KEY, id)
   }, [])
 
   const createProfile = useCallback(
@@ -99,7 +99,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setCurrentId(null)
-    removeSession(CURRENT_KEY)
+    remove(CURRENT_KEY)
   }, [])
 
   const saveModuleResult = useCallback(
