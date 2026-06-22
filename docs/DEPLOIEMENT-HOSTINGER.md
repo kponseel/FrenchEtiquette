@@ -44,6 +44,11 @@ ssh -p 65002 u170442813@72.60.93.206
 ls -d ~/domains/etiquette.estim.pro/public_html
 ```
 
+> ⚠️ **Important** : `DEPLOY_PATH` doit pointer sur le dossier du **sous-domaine**
+> `etiquette.estim.pro`, **pas** sur le `public_html` du domaine principal. Le
+> déploiement est *additif* (il n'efface rien), mais déposer l'app au mauvais
+> endroit la rendrait visible là où tu ne le veux pas.
+
 ## 3. Créer une clé SSH de déploiement
 
 Sur ta machine (ou dans Cloud Shell), génère une paire dédiée :
@@ -85,6 +90,10 @@ Le workflow :
 1. construit le front (`npm run build`, base `/`, API `/api/`) ;
 2. envoie `dist/` vers le sous-domaine (sans toucher à `/api`) ;
 3. envoie `api/` (sans toucher à `letiquette.sqlite`).
+
+La synchronisation est **additive** : elle n'efface jamais de fichiers sur le
+serveur (donc jamais la base). Les anciens assets au nom haché peuvent
+s'accumuler — c'est sans conséquence.
 
 ## 6. Vérifier
 

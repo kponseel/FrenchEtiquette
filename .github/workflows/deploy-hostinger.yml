@@ -54,16 +54,21 @@ jobs:
           ssh-keyscan -p "${{ secrets.HOSTINGER_SSH_PORT }}" \
             "${{ secrets.HOSTINGER_SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
+      # Synchronisation *additive* (sans --delete) : on n'efface jamais rien sur
+      # le serveur. C'est volontaire — si DEPLOY_PATH était mal réglé, --delete
+      # pourrait vider le mauvais dossier. Les anciens assets (noms hachés) qui
+      # traînent sont inoffensifs et non référencés par le nouveau build.
+
       - name: Deploy front-end (ne touche pas /api)
         run: |
-          rsync -rltvz --delete --exclude='/api' \
+          rsync -rltvz --exclude='/api' \
             -e "ssh -i ~/.ssh/id_deploy -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=accept-new" \
             dist/ \
             "${{ secrets.HOSTINGER_SSH_USER }}@${{ secrets.HOSTINGER_SSH_HOST }}:${{ secrets.HOSTINGER_DEPLOY_PATH }}/"
 
       - name: Deploy API (ne touche pas la base de données)
         run: |
-          rsync -rltvz --delete --exclude='letiquette.sqlite*' \
+          rsync -rltvz --exclude='letiquette.sqlite*' \
             -e "ssh -i ~/.ssh/id_deploy -p ${{ secrets.HOSTINGER_SSH_PORT }} -o StrictHostKeyChecking=accept-new" \
             api/ \
             "${{ secrets.HOSTINGER_SSH_USER }}@${{ secrets.HOSTINGER_SSH_HOST }}:${{ secrets.HOSTINGER_DEPLOY_PATH }}/api/"
