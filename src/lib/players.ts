@@ -44,7 +44,7 @@ export function validatePseudo(pseudo: string): string | null {
   return null
 }
 
-function freshPlayer(pseudo: string): Player {
+function freshPlayer(pseudo: string, pinHash: string): Player {
   return {
     id:
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -52,15 +52,16 @@ function freshPlayer(pseudo: string): Player {
         : `p_${Date.now()}_${Math.random().toString(36).slice(2)}`,
     pseudo: pseudo.trim(),
     createdAt: Date.now(),
+    pinHash,
     modules: {},
     final: { bestScore: 0, passed: false, attempts: 0 },
   }
 }
 
 /** Crée et persiste un nouveau joueur. Le contrôle d'unicité doit être fait en amont. */
-export function createPlayer(pseudo: string): Player {
+export function createPlayer(pseudo: string, pinHash: string): Player {
   const players = loadPlayers()
-  const player = freshPlayer(pseudo)
+  const player = freshPlayer(pseudo, pinHash)
   savePlayers([...players, player])
   return player
 }

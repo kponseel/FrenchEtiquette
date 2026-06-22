@@ -14,7 +14,8 @@ un **certificat de Gentleman**.
 - Une **explication** est affichée après chaque réponse.
 - Une fois **tous les modules validés**, l’**examen final** (50 questions tirées
   de l’ensemble) se débloque. Le réussir certifie le joueur **Gentleman**.
-- **Multi-joueurs** avec **classement** : connexion par simple pseudo (unicité vérifiée).
+- **Multi-joueurs** avec **classement** : profil par pseudo (unicité vérifiée),
+  protégé par un **code PIN** (2 à 10 chiffres).
 
 ## Stack
 
@@ -92,3 +93,9 @@ Pour le développement, joueurs / scores / classement sont stockés **localement
 (localStorage, donc par appareil). Toute la persistance passe par `src/lib/storage.ts`
 et `src/lib/players.ts` : brancher un vrai backend (API REST, Supabase, Firebase…)
 pour un classement partagé ne demande de réécrire que ces fichiers, sans toucher à l’UI.
+
+L’accès à un profil est gardé par un **code PIN** (`src/lib/pin.ts`), stocké
+uniquement sous forme de **hachage SHA-256 salé** — jamais en clair. C’est une
+protection légère, adaptée à un jeu sans données personnelles. On reste connecté
+d’une session à l’autre ; le code n’est redemandé que pour ouvrir un autre
+profil ou après un verrouillage explicite (« Verrouiller & changer de profil »).

@@ -62,6 +62,8 @@ export interface Player {
   id: string
   pseudo: string
   createdAt: number
+  /** Hachage SHA-256 (salé par le pseudo) du code PIN. Absent = profil hérité non protégé. */
+  pinHash?: string
   /** Keyed by module id. */
   modules: Record<string, ModuleProgress>
   final: FinalProgress

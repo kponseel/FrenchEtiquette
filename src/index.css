@@ -668,6 +668,19 @@ h1.display {
   color: var(--error);
 }
 
+/* Code PIN affiché à la création d'un profil */
+.pincode {
+  display: inline-block;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  padding: 12px 14px 12px 28px;
+  border: 1px solid var(--gold-soft);
+  border-radius: var(--r-sm);
+  background: rgba(184, 146, 74, 0.08);
+  color: var(--ink);
+}
+
 /* ---------------------------------------------------- Score / results */
 .score-ring {
   width: 168px;
