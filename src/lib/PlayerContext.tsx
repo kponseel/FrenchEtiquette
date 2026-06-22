@@ -12,9 +12,13 @@ import {
   createPlayer,
   isPseudoTaken,
   loadPlayers,
+  newPlayerId,
   normalizePseudo,
+  pseudoTakenByOther,
   recordFinalResult,
   recordModuleResult,
+  setPlayerPinHash,
+  setPlayerPseudo,
   validatePseudo,
 } from './players'
 import { hashPin, validatePin } from './pin'
@@ -37,6 +41,10 @@ interface PlayerContextValue {
   createProfile: (pseudo: string, pin: string) => Promise<CreateResult>
   /** Ouvre un profil existant après vérification du code PIN. */
   loginExisting: (id: string, pin: string) => Promise<LoginResult>
+  /** Renomme le profil courant (pseudo unique). */
+  renameProfile: (newPseudo: string) => Promise<LoginResult>
+  /** Change le code PIN du profil courant. */
+  changePin: (newPin: string) => Promise<LoginResult>
   /** Verrouille la session (retour à l'écran d'accès). */
   logout: () => void
   saveModuleResult: (moduleId: string, result: AttemptResult) => void
@@ -72,8 +80,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const invalidPin = validatePin(pin)
       if (invalidPin) return { ok: false, error: invalidPin }
 
-      const pinHash = await hashPin(normalizePseudo(pseudo), pin)
-      const created = createPlayer(pseudo, pinHash)
+      const id = newPlayerId()
+      const pinHash = await hashPin(id, pin)
+      const created = createPlayer(id, pseudo, pinHash)
       setPlayers(loadPlayers())
       return { ok: true, id: created.id }
     },
@@ -88,13 +97,47 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (target.pinHash) {
         const invalidPin = validatePin(pin)
         if (invalidPin) return { ok: false, error: invalidPin }
-        const attempt = await hashPin(normalizePseudo(target.pseudo), pin)
-        if (attempt !== target.pinHash) return { ok: false, error: 'Code incorrect.' }
+        const idHash = await hashPin(target.id, pin)
+        let ok = idHash === target.pinHash
+        if (!ok) {
+          // Compat : anciens codes salés par le pseudo → migration vers l'id.
+          const legacy = await hashPin(normalizePseudo(target.pseudo), pin)
+          if (legacy === target.pinHash) {
+            setPlayers(setPlayerPinHash(target.id, idHash))
+            ok = true
+          }
+        }
+        if (!ok) return { ok: false, error: 'Code incorrect.' }
       }
       openPlayer(id)
       return { ok: true }
     },
     [players, openPlayer],
+  )
+
+  const renameProfile = useCallback(
+    async (newPseudo: string): Promise<LoginResult> => {
+      if (!currentId) return { ok: false, error: 'Aucun profil ouvert.' }
+      const invalid = validatePseudo(newPseudo)
+      if (invalid) return { ok: false, error: invalid }
+      if (pseudoTakenByOther(newPseudo, currentId))
+        return { ok: false, error: 'Ce nom est déjà pris.' }
+      setPlayers(setPlayerPseudo(currentId, newPseudo))
+      return { ok: true }
+    },
+    [currentId],
+  )
+
+  const changePin = useCallback(
+    async (newPin: string): Promise<LoginResult> => {
+      if (!currentId) return { ok: false, error: 'Aucun profil ouvert.' }
+      const invalid = validatePin(newPin)
+      if (invalid) return { ok: false, error: invalid }
+      const pinHash = await hashPin(currentId, newPin)
+      setPlayers(setPlayerPinHash(currentId, pinHash))
+      return { ok: true }
+    },
+    [currentId],
   )
 
   const logout = useCallback(() => {
@@ -124,11 +167,23 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       players,
       createProfile,
       loginExisting,
+      renameProfile,
+      changePin,
       logout,
       saveModuleResult,
       saveFinalResult,
     }),
-    [player, players, createProfile, loginExisting, logout, saveModuleResult, saveFinalResult],
+    [
+      player,
+      players,
+      createProfile,
+      loginExisting,
+      renameProfile,
+      changePin,
+      logout,
+      saveModuleResult,
+      saveFinalResult,
+    ],
   )
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>

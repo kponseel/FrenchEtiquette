@@ -34,6 +34,16 @@ export function isPseudoTaken(pseudo: string, players = loadPlayers()): boolean 
   return players.some((p) => normalizePseudo(p.pseudo) === norm)
 }
 
+/** Comme isPseudoTaken, mais en ignorant un joueur donné (utile au renommage). */
+export function pseudoTakenByOther(
+  pseudo: string,
+  id: string,
+  players = loadPlayers(),
+): boolean {
+  const norm = normalizePseudo(pseudo)
+  return players.some((p) => p.id !== id && normalizePseudo(p.pseudo) === norm)
+}
+
 /** Renvoie un message d'erreur si le pseudo est invalide, sinon null. */
 export function validatePseudo(pseudo: string): string | null {
   const trimmed = pseudo.trim()
@@ -44,12 +54,16 @@ export function validatePseudo(pseudo: string): string | null {
   return null
 }
 
-function freshPlayer(pseudo: string, pinHash: string): Player {
+/** Génère un identifiant de joueur stable (sert aussi de sel au code PIN). */
+export function newPlayerId(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `p_${Date.now()}_${Math.random().toString(36).slice(2)}`
+}
+
+function freshPlayer(id: string, pseudo: string, pinHash: string): Player {
   return {
-    id:
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `p_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+    id,
     pseudo: pseudo.trim(),
     createdAt: Date.now(),
     pinHash,
@@ -59,11 +73,27 @@ function freshPlayer(pseudo: string, pinHash: string): Player {
 }
 
 /** Crée et persiste un nouveau joueur. Le contrôle d'unicité doit être fait en amont. */
-export function createPlayer(pseudo: string, pinHash: string): Player {
+export function createPlayer(id: string, pseudo: string, pinHash: string): Player {
   const players = loadPlayers()
-  const player = freshPlayer(pseudo, pinHash)
+  const player = freshPlayer(id, pseudo, pinHash)
   savePlayers([...players, player])
   return player
+}
+
+/** Met à jour le pseudo d'un joueur et renvoie la liste à jour. */
+export function setPlayerPseudo(id: string, pseudo: string): Player[] {
+  const next = loadPlayers().map((p) =>
+    p.id === id ? { ...p, pseudo: pseudo.trim() } : p,
+  )
+  savePlayers(next)
+  return next
+}
+
+/** Met à jour le hachage du code PIN d'un joueur et renvoie la liste à jour. */
+export function setPlayerPinHash(id: string, pinHash: string): Player[] {
+  const next = loadPlayers().map((p) => (p.id === id ? { ...p, pinHash } : p))
+  savePlayers(next)
+  return next
 }
 
 // ---------------------------------------------------------------------------
