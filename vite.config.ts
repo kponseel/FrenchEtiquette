@@ -2,14 +2,21 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Base path: '/' in local dev, '/frenchetiquette/' on GitHub Pages.
-// The CI workflow sets VITE_BASE; everything else (router basename, manifest,
-// icons, service-worker fallback) derives from it so there is a single source.
+// Base path: '/' à la racine (dev local + hébergement etiquette.estim.pro),
+// '/FrenchEtiquette/' sur GitHub Pages. La CI fixe VITE_BASE ; tout le reste
+// (router basename, manifest, icônes, fallback du service-worker) en dérive.
 const base = process.env.VITE_BASE ?? '/'
+
+// Proxy de dev optionnel : `VITE_API_PROXY=http://127.0.0.1:8099 npm run dev`
+// renvoie /api vers un backend PHP lancé à part (php -S). Sans effet en prod.
+const apiProxy = process.env.VITE_API_PROXY
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base,
+  server: apiProxy
+    ? { proxy: { '/api': { target: apiProxy, changeOrigin: true } } }
+    : undefined,
   plugins: [
     react(),
     VitePWA({
@@ -43,6 +50,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // SPA fallback so client-side routes resolve once the SW is active.
         navigateFallback: `${base}index.html`,
+        // …mais jamais pour l'API : laisser passer les requêtes /api vers le réseau.
+        navigateFallbackDenylist: [/^\/api\//],
       },
       devOptions: {
         enabled: false,

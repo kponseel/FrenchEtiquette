@@ -1,20 +1,10 @@
 import type { AttemptResult, Player } from '../types'
 import { modules } from '../content/modules'
-import { read, write } from './storage'
 
-const PLAYERS_KEY = 'players'
-
-// ---------------------------------------------------------------------------
-// Persistence
-// ---------------------------------------------------------------------------
-
-export function loadPlayers(): Player[] {
-  return read<Player[]>(PLAYERS_KEY, [])
-}
-
-export function savePlayers(players: Player[]): void {
-  write(PLAYERS_KEY, players)
-}
+// La persistance vit désormais côté serveur (voir api.ts + /api/index.php).
+// Ce module ne garde que des fonctions *pures* : validation, calcul du
+// classement, et fusion d'un résultat de quiz dans un joueur (utilisée pour la
+// mise à jour optimiste de l'écran ; le serveur applique la même logique).
 
 // ---------------------------------------------------------------------------
 // Pseudo / uniqueness
@@ -29,7 +19,7 @@ export function normalizePseudo(pseudo: string): string {
     .replace(/\p{Diacritic}/gu, '')
 }
 
-export function isPseudoTaken(pseudo: string, players = loadPlayers()): boolean {
+export function isPseudoTaken(pseudo: string, players: Player[]): boolean {
   const norm = normalizePseudo(pseudo)
   return players.some((p) => normalizePseudo(p.pseudo) === norm)
 }
@@ -38,7 +28,7 @@ export function isPseudoTaken(pseudo: string, players = loadPlayers()): boolean 
 export function pseudoTakenByOther(
   pseudo: string,
   id: string,
-  players = loadPlayers(),
+  players: Player[],
 ): boolean {
   const norm = normalizePseudo(pseudo)
   return players.some((p) => p.id !== id && normalizePseudo(p.pseudo) === norm)
@@ -54,97 +44,44 @@ export function validatePseudo(pseudo: string): string | null {
   return null
 }
 
-/** Génère un identifiant de joueur stable (sert aussi de sel au code PIN). */
-export function newPlayerId(): string {
-  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : `p_${Date.now()}_${Math.random().toString(36).slice(2)}`
-}
+// ---------------------------------------------------------------------------
+// Fusion d'un résultat (pure) — miroir de la logique serveur
+// ---------------------------------------------------------------------------
 
-function freshPlayer(id: string, pseudo: string, pinHash: string): Player {
+/** Renvoie une copie du joueur avec le résultat de module intégré. */
+export function applyModuleResult(
+  player: Player,
+  moduleId: string,
+  result: AttemptResult,
+): Player {
+  const prev = player.modules[moduleId]
   return {
-    id,
-    pseudo: pseudo.trim(),
-    createdAt: Date.now(),
-    pinHash,
-    modules: {},
-    final: { bestScore: 0, passed: false, attempts: 0 },
+    ...player,
+    modules: {
+      ...player.modules,
+      [moduleId]: {
+        bestScore: Math.max(prev?.bestScore ?? 0, result.score),
+        passed: (prev?.passed ?? false) || result.passed,
+        attempts: (prev?.attempts ?? 0) + 1,
+        lastResult: result,
+      },
+    },
   }
 }
 
-/** Crée et persiste un nouveau joueur. Le contrôle d'unicité doit être fait en amont. */
-export function createPlayer(id: string, pseudo: string, pinHash: string): Player {
-  const players = loadPlayers()
-  const player = freshPlayer(id, pseudo, pinHash)
-  savePlayers([...players, player])
-  return player
-}
-
-/** Met à jour le pseudo d'un joueur et renvoie la liste à jour. */
-export function setPlayerPseudo(id: string, pseudo: string): Player[] {
-  const next = loadPlayers().map((p) =>
-    p.id === id ? { ...p, pseudo: pseudo.trim() } : p,
-  )
-  savePlayers(next)
-  return next
-}
-
-/** Met à jour le hachage du code PIN d'un joueur et renvoie la liste à jour. */
-export function setPlayerPinHash(id: string, pinHash: string): Player[] {
-  const next = loadPlayers().map((p) => (p.id === id ? { ...p, pinHash } : p))
-  savePlayers(next)
-  return next
-}
-
-// ---------------------------------------------------------------------------
-// Recording results
-// ---------------------------------------------------------------------------
-
-export function recordModuleResult(
-  playerId: string,
-  moduleId: string,
-  result: AttemptResult,
-): Player[] {
-  const players = loadPlayers()
-  const next = players.map((p) => {
-    if (p.id !== playerId) return p
-    const prev = p.modules[moduleId]
-    return {
-      ...p,
-      modules: {
-        ...p.modules,
-        [moduleId]: {
-          bestScore: Math.max(prev?.bestScore ?? 0, result.score),
-          passed: (prev?.passed ?? false) || result.passed,
-          attempts: (prev?.attempts ?? 0) + 1,
-          lastResult: result,
-        },
-      },
-    }
-  })
-  savePlayers(next)
-  return next
-}
-
-export function recordFinalResult(playerId: string, result: AttemptResult): Player[] {
-  const players = loadPlayers()
-  const next = players.map((p) => {
-    if (p.id !== playerId) return p
-    const wasCertified = p.final.passed
-    return {
-      ...p,
-      final: {
-        bestScore: Math.max(p.final.bestScore, result.score),
-        passed: wasCertified || result.passed,
-        attempts: p.final.attempts + 1,
-        certifiedAt:
-          p.final.certifiedAt ?? (result.passed ? result.at : undefined),
-        lastResult: result,
-      },
-    }
-  })
-  savePlayers(next)
-  return next
+/** Renvoie une copie du joueur avec le résultat d'examen final intégré. */
+export function applyFinalResult(player: Player, result: AttemptResult): Player {
+  const wasCertified = player.final.passed
+  return {
+    ...player,
+    final: {
+      bestScore: Math.max(player.final.bestScore, result.score),
+      passed: wasCertified || result.passed,
+      attempts: player.final.attempts + 1,
+      certifiedAt: player.final.certifiedAt ?? (result.passed ? result.at : undefined),
+      lastResult: result,
+    },
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -199,7 +136,7 @@ export interface RankedPlayer {
 }
 
 /** Classement de tous les joueurs, du meilleur au moins avancé. */
-export function ranking(players = loadPlayers()): RankedPlayer[] {
+export function ranking(players: Player[]): RankedPlayer[] {
   return players
     .map((player) => ({
       player,

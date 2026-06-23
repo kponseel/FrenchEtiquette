@@ -46,8 +46,7 @@ export default function Leaderboard() {
       )}
 
       <p className="faint" style={{ fontSize: '0.78rem', marginTop: 22 }}>
-        Classement enregistré sur cet appareil. Un service en ligne pourra le
-        rendre commun à tous les joueurs.
+        Classement commun à tous les joueurs, mis à jour en direct.
       </p>
 
       <BottomNav />
