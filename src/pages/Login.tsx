@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { api } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { usePlayer } from '../lib/PlayerContext'
 import { playerTitle } from '../lib/players'
@@ -21,8 +22,8 @@ export default function Login() {
   const [createdId, setCreatedId] = useState('')
   const [createdPin, setCreatedPin] = useState('')
   const [copied, setCopied] = useState(false)
-  // Email saisi uniquement pour s'envoyer le code à la création — jamais stocké.
   const [email, setEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
 
   function onPinChange(value: string) {
     setPin(value.replace(/\D/g, '').slice(0, PIN_MAX))
@@ -80,24 +81,22 @@ export default function Login() {
     }
   }
 
-  function mailtoHref(to: string) {
-    const subject = 'Mon code d’accès — L’Étiquette'
-    const body =
-      `Bonjour,\n\n` +
-      `Voici le code d’accès à mon profil « ${pseudo} » sur L’Étiquette :\n\n` +
-      `Code : ${createdPin}\n\n` +
-      `À conserver pour retrouver ma progression. 🎩`
-    return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  }
-
-  function sendByEmail() {
+  async function sendByEmail() {
     const to = email.trim()
     if (!/^\S+@\S+\.\S+$/.test(to)) {
-      setError('Indiquez une adresse email valide pour recevoir le code.')
+      setError("Indiquez une adresse email valide pour recevoir le code.")
       return
     }
-    // Ouvre l'app mail avec le code pré-rempli ; l'adresse n'est pas conservée.
-    window.location.href = mailtoHref(to)
+    setBusy(true)
+    try {
+      await api.sendPin(to, pseudo, createdPin)
+      setEmailSent(true)
+      setError(null)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Impossible d’envoyer l’email.")
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -298,8 +297,8 @@ export default function Login() {
               Utilisée une seule fois pour vous envoyer le code — jamais enregistrée.
             </span>
           </label>
-          <button type="button" className="btn btn--ghost btn--block" onClick={sendByEmail}>
-            Envoyer le code par email
+          <button type="button" className="btn btn--ghost btn--block" onClick={sendByEmail} disabled={busy || emailSent}>
+            {busy ? 'Envoi…' : emailSent ? 'Code envoyé ✓' : 'Envoyer le code par email'}
           </button>
           {error && <p className="form-error">{error}</p>}
           <button

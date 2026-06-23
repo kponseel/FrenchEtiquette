@@ -80,5 +80,7 @@ export const api = {
     call<MutationResponse>('progressModule', { token, moduleId, result }),
   progressFinal: (token: string, result: AttemptResult) =>
     call<MutationResponse>('progressFinal', { token, result }),
+  sendPin: (email: string, pseudo: string, pin: string) =>
+    call<{ ok: boolean }>('sendPin', { email, pseudo, pin }),
   logout: (token: string) => call<{ ok: boolean }>('logout', { token }),
 }
