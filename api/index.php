@@ -416,6 +416,40 @@ try {
             break;
         }
 
+        // ---- Envoyer le code par email (jamais stocké) -------------------
+        case 'sendPin': {
+            $email = trim((string) ($in['email'] ?? ''));
+            $pseudo = trim((string) ($in['pseudo'] ?? ''));
+            $pin = (string) ($in['pin'] ?? '');
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                fail('Adresse email invalide.', 422);
+            }
+            if ($pseudo === '') {
+                fail('Pseudo manquant.', 422);
+            }
+            if ($e = validate_pin($pin)) {
+                fail($e, 422);
+            }
+            $subject = '=?UTF-8?B?' . base64_encode("Mon code d'accès — L'Étiquette") . '?=';
+            $body = "Bonjour,\r\n\r\n"
+                . "Voici le code d'accès à votre profil \xc2\xab\xc2\xa0{$pseudo}\xc2\xa0\xc2\xbb sur L'Étiquette :\r\n\r\n"
+                . "Code : {$pin}\r\n\r\n"
+                . "Conservez-le précieusement pour retrouver votre progression depuis n'importe quel appareil.\r\n\r\n"
+                . "\xe2\x80\x94 L'Étiquette";
+            $headers = implode("\r\n", [
+                'MIME-Version: 1.0',
+                'Content-Type: text/plain; charset=UTF-8',
+                "From: L'Étiquette <noreply@etiquette.estim.pro>",
+                'X-Mailer: PHP/' . PHP_VERSION,
+            ]);
+            $ok = @mail($email, $subject, $body, $headers);
+            if (!$ok) {
+                fail("Impossible d'envoyer l'email. Notez votre code manuellement.", 500);
+            }
+            send(['ok' => true]);
+            break;
+        }
+
         // ---- Déconnexion (invalide le jeton) -----------------------------
         case 'logout': {
             $token = (string) ($in['token'] ?? '');
