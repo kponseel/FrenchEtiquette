@@ -7,9 +7,9 @@
 export const fr = {
   // ---- Marque & navigation ------------------------------------------------
   'brand.name': 'L’Étiquette',
-  // Typographie française : une espace insécable précède le tiret cadratin et
-  // borde les guillemets. Écrite en échappement   plutôt qu'en caractère
-  // littéral, invisible et facile à écraser par mégarde.
+  // Attention : les trois espaces avant — et à l’intérieur des « » ci-dessous
+  // sont des espaces INSÉCABLES (U+00A0), invisibles à la relecture. C’est la
+  // typographie française ; ne les remplacez pas par des espaces ordinaires.
   'brand.tagline':
     'Maîtrisez l’art du savoir-vivre à la française — et devenez Gentleman.',
   'nav.aria': 'Navigation principale',
