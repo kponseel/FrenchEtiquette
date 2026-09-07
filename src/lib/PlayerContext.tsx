@@ -18,6 +18,7 @@ import {
 } from './players'
 import { validatePin } from './pin'
 import { ApiError, api } from './api'
+import { useI18n, type Translate } from './i18n'
 
 // Jeton de session (renvoyé par le serveur à la connexion). Persisté localement
 // pour rester connecté d'une visite à l'autre ; le code n'est jamais stocké.
@@ -55,11 +56,17 @@ interface PlayerContextValue {
 
 const PlayerContext = createContext<PlayerContextValue | null>(null)
 
-function describe(e: unknown): string {
-  return e instanceof ApiError ? e.message : 'Une erreur est survenue. Réessayez.'
+/**
+ * Message présentable pour une erreur d'appel API. Le serveur renvoie déjà ses
+ * messages dans la langue courante (voir `lang` dans api.ts) ; on ne traduit
+ * donc que le cas « erreur inattendue ».
+ */
+function describe(e: unknown, t: Translate): string {
+  return e instanceof ApiError ? e.message : t('error.genericRetry')
 }
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
+  const { t, tIssue } = useI18n()
   const [players, setPlayers] = useState<Player[]>([])
   const [player, setPlayer] = useState<Player | null>(null)
   const [token, setToken] = useState<string | null>(() =>
@@ -79,7 +86,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           setLoadError(null)
         }
       } catch (e) {
-        if (!cancelled) setLoadError(describe(e))
+        if (!cancelled) setLoadError(describe(e, t))
       }
 
       const tok = read<string | null>(TOKEN_KEY, null)
@@ -112,72 +119,72 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const createProfile = useCallback(
     async (pseudo: string, pin: string): Promise<CreateResult> => {
       const invalidPseudo = validatePseudo(pseudo)
-      if (invalidPseudo) return { ok: false, error: invalidPseudo }
+      if (invalidPseudo) return { ok: false, error: tIssue(invalidPseudo)! }
       if (isPseudoTaken(pseudo, players))
-        return { ok: false, error: 'Ce nom est déjà pris.' }
+        return { ok: false, error: t('error.nameTaken') }
       const invalidPin = validatePin(pin)
-      if (invalidPin) return { ok: false, error: invalidPin }
+      if (invalidPin) return { ok: false, error: tIssue(invalidPin)! }
 
       try {
         const { player: created, players: list } = await api.register(pseudo, pin)
         setPlayers(list)
         return { ok: true, id: created.id }
       } catch (e) {
-        return { ok: false, error: describe(e) }
+        return { ok: false, error: describe(e, t) }
       }
     },
-    [players],
+    [players, t, tIssue],
   )
 
   const loginExisting = useCallback(
     async (id: string, pin: string): Promise<LoginResult> => {
       const invalidPin = validatePin(pin)
-      if (invalidPin) return { ok: false, error: invalidPin }
+      if (invalidPin) return { ok: false, error: tIssue(invalidPin)! }
       try {
         const { token: tok, player: me, players: list } = await api.login(id, pin)
         openSession(tok, me, list)
         return { ok: true }
       } catch (e) {
-        return { ok: false, error: describe(e) }
+        return { ok: false, error: describe(e, t) }
       }
     },
-    [openSession],
+    [openSession, t, tIssue],
   )
 
   const renameProfile = useCallback(
     async (newPseudo: string): Promise<LoginResult> => {
-      if (!token || !player) return { ok: false, error: 'Aucun profil ouvert.' }
+      if (!token || !player) return { ok: false, error: t('error.noProfile') }
       const invalid = validatePseudo(newPseudo)
-      if (invalid) return { ok: false, error: invalid }
+      if (invalid) return { ok: false, error: tIssue(invalid)! }
       if (pseudoTakenByOther(newPseudo, player.id, players))
-        return { ok: false, error: 'Ce nom est déjà pris.' }
+        return { ok: false, error: t('error.nameTaken') }
       try {
         const { player: me, players: list } = await api.rename(token, newPseudo)
         setPlayer(me)
         setPlayers(list)
         return { ok: true }
       } catch (e) {
-        return { ok: false, error: describe(e) }
+        return { ok: false, error: describe(e, t) }
       }
     },
-    [token, player, players],
+    [token, player, players, t, tIssue],
   )
 
   const changePin = useCallback(
     async (newPin: string): Promise<LoginResult> => {
-      if (!token) return { ok: false, error: 'Aucun profil ouvert.' }
+      if (!token) return { ok: false, error: t('error.noProfile') }
       const invalid = validatePin(newPin)
-      if (invalid) return { ok: false, error: invalid }
+      if (invalid) return { ok: false, error: tIssue(invalid)! }
       try {
         const { player: me, players: list } = await api.setPin(token, newPin)
         setPlayer(me)
         setPlayers(list)
         return { ok: true }
       } catch (e) {
-        return { ok: false, error: describe(e) }
+        return { ok: false, error: describe(e, t) }
       }
     },
-    [token],
+    [token, t, tIssue],
   )
 
   const logout = useCallback(() => {
