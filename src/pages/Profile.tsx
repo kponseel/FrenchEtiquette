@@ -11,11 +11,13 @@ import {
 } from '../lib/players'
 import { formatPercent } from '../lib/quiz'
 import { PIN_MAX, PIN_MIN } from '../lib/pin'
+import { useT } from '../lib/i18n'
 import BottomNav from '../components/BottomNav'
 
 export default function Profile() {
   const { player, logout, renameProfile, changePin } = usePlayer()
   const navigate = useNavigate()
+  const t = useT()
 
   const [editing, setEditing] = useState<null | 'pseudo' | 'pin'>(null)
   const [value, setValue] = useState('')
@@ -49,10 +51,10 @@ export default function Profile() {
     const res = editing === 'pseudo' ? await renameProfile(value) : await changePin(value)
     setBusy(false)
     if (res.ok) {
-      setFlash(editing === 'pseudo' ? 'Pseudo mis à jour.' : 'Code mis à jour.')
+      setFlash(editing === 'pseudo' ? t('profile.pseudoUpdated') : t('profile.pinUpdated'))
       cancelEdit()
     } else {
-      setErr(res.error ?? 'Une erreur est survenue.')
+      setErr(res.error ?? t('error.generic'))
     }
   }
 
@@ -72,25 +74,25 @@ export default function Profile() {
         </h1>
         <p className="eyebrow" style={{ marginTop: 6 }}>
           {isCertified(player) ? '✦ ' : ''}
-          {playerTitle(player)}
+          {t(playerTitle(player))}
         </p>
       </div>
 
       <div className="card" style={{ marginBottom: 22 }}>
         <div className="module-card__meta" style={{ marginTop: 0 }}>
-          <span className="muted">Modules validés</span>
+          <span className="muted">{t('profile.modulesPassed')}</span>
           <span className="serif" style={{ fontSize: '1.1rem' }}>
             {passed} / {TOTAL_MODULES}
           </span>
         </div>
         <div className="module-card__meta">
-          <span className="muted">Examen final</span>
+          <span className="muted">{t('profile.finalExam')}</span>
           <span className="serif" style={{ fontSize: '1.1rem' }}>
             {player.final.attempts > 0 ? formatPercent(player.final.bestScore) : '—'}
           </span>
         </div>
         <div className="module-card__meta">
-          <span className="muted">Points de classement</span>
+          <span className="muted">{t('profile.rankingPoints')}</span>
           <span className="serif" style={{ fontSize: '1.1rem' }}>
             {rankingPoints(player)}
           </span>
@@ -98,7 +100,7 @@ export default function Profile() {
       </div>
 
       <div className="section-head">
-        <h2>Détail par module</h2>
+        <h2>{t('profile.byModule')}</h2>
       </div>
       <div className="list">
         {modules.map((m) => {
@@ -110,15 +112,15 @@ export default function Profile() {
                 <span className="rank-row__name">{m.title}</span>
                 <span className="rank-row__title" style={{ display: 'block' }}>
                   {prog?.passed
-                    ? 'Validé'
+                    ? t('profile.statusPassed')
                     : prog?.attempts
-                      ? 'En cours'
-                      : 'Non commencé'}
+                      ? t('profile.statusInProgress')
+                      : t('profile.statusNotStarted')}
                 </span>
               </span>
               <span className="rank-row__pts">
                 <strong>{prog?.attempts ? formatPercent(prog.bestScore) : '—'}</strong>
-                <span>meilleur</span>
+                <span>{t('profile.best')}</span>
               </span>
             </div>
           )
@@ -126,7 +128,7 @@ export default function Profile() {
       </div>
 
       <div className="section-head" style={{ marginTop: 28 }}>
-        <h2>Compte</h2>
+        <h2>{t('profile.account')}</h2>
       </div>
       <div className="card">
         {flash && (
@@ -138,10 +140,10 @@ export default function Profile() {
         {editing === null && (
           <div className="stack" style={{ ['--gap' as string]: '10px' }}>
             <button className="btn btn--ghost btn--block" onClick={() => startEdit('pseudo')}>
-              Changer de pseudo
+              {t('profile.changePseudo')}
             </button>
             <button className="btn btn--ghost btn--block" onClick={() => startEdit('pin')}>
-              Changer de code
+              {t('profile.changePin')}
             </button>
           </div>
         )}
@@ -149,7 +151,7 @@ export default function Profile() {
         {editing === 'pseudo' && (
           <div className="stack" style={{ ['--gap' as string]: '12px' }}>
             <label className="field">
-              <span className="field__label">Nouveau pseudo</span>
+              <span className="field__label">{t('profile.newPseudo')}</span>
               <input
                 className={'input' + (err ? ' has-error' : '')}
                 type="text"
@@ -171,10 +173,10 @@ export default function Profile() {
               onClick={save}
               disabled={busy || !value.trim()}
             >
-              {busy ? 'Un instant…' : 'Enregistrer'}
+              {busy ? t('common.wait') : t('profile.save')}
             </button>
             <button className="btn btn--ghost btn--block" onClick={cancelEdit} disabled={busy}>
-              Annuler
+              {t('profile.cancel')}
             </button>
           </div>
         )}
@@ -183,7 +185,7 @@ export default function Profile() {
           <div className="stack" style={{ ['--gap' as string]: '12px' }}>
             <label className="field">
               <span className="field__label">
-                Nouveau code · {PIN_MIN} à {PIN_MAX} chiffres
+                {t('profile.newPin', { min: PIN_MIN, max: PIN_MAX })}
               </span>
               <input
                 className={'input' + (err ? ' has-error' : '')}
@@ -205,10 +207,10 @@ export default function Profile() {
               onClick={save}
               disabled={busy || value.length < PIN_MIN}
             >
-              {busy ? 'Un instant…' : 'Enregistrer le code'}
+              {busy ? t('common.wait') : t('profile.savePin')}
             </button>
             <button className="btn btn--ghost btn--block" onClick={cancelEdit} disabled={busy}>
-              Annuler
+              {t('profile.cancel')}
             </button>
           </div>
         )}
@@ -219,7 +221,7 @@ export default function Profile() {
         style={{ marginTop: 16 }}
         onClick={changePlayer}
       >
-        Se déconnecter
+        {t('profile.signOut')}
       </button>
 
       <BottomNav />

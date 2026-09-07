@@ -6,6 +6,10 @@ dist-ssr
 .vite
 *.tsbuildinfo
 
+# Contenu généré depuis les CSV par `npm run build:content`, lancé
+# automatiquement avant dev/build/lint. La source de vérité est content/*.csv.
+src/content/modules.ts
+
 # Base de données SQLite locale (ne jamais committer)
 api/data/*.sqlite
 api/data/*.sqlite-*

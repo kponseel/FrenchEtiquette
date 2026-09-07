@@ -2,23 +2,23 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../lib/PlayerContext'
 import { isCertified } from '../lib/players'
 import { formatPercent } from '../lib/quiz'
+import { BCP47, useI18n } from '../lib/i18n'
 import BottomNav from '../components/BottomNav'
 import { SealIcon } from '../components/icons'
 
-const frDate = (ts: number) =>
-  new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(ts))
-
 export default function Certificate() {
   const { player } = usePlayer()
+  const { t, locale } = useI18n()
   const navigate = useNavigate()
   if (!player) return <Navigate to="/" replace />
   if (!isCertified(player)) return <Navigate to="/accueil" replace />
 
   const date = player.final.certifiedAt ?? Date.now()
+  const formatted = new Intl.DateTimeFormat(BCP47[locale], {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(date))
 
   return (
     <div className="screen screen--with-nav">
@@ -26,26 +26,25 @@ export default function Certificate() {
         <div className="certificate__seal">
           <SealIcon width={32} height={32} />
         </div>
-        <p className="eyebrow center">L’Étiquette française</p>
+        <p className="eyebrow center">{t('certificate.eyebrow')}</p>
         <p className="muted center" style={{ fontSize: '0.85rem', marginTop: 16 }}>
-          Le présent certificat atteste que
+          {t('certificate.attests')}
         </p>
         <p className="certificate__name">{player.pseudo}</p>
         <hr className="rule rule--center" />
         <p className="lead center" style={{ fontSize: '0.98rem' }}>
-          a fait preuve d’une parfaite connaissance des usages du savoir-vivre
-          et est reconnu(e)
+          {t('certificate.body')}
         </p>
         <p
           className="serif center"
           style={{ fontSize: '1.5rem', color: 'var(--gold-deep)', margin: '10px 0' }}
         >
-          Gentleman
+          {t('certificate.rank')}
         </p>
         <p className="faint center" style={{ fontSize: '0.8rem', marginTop: 14 }}>
-          Délivré le {frDate(date)}
+          {t('certificate.issued', { date: formatted })}
           <span className="dot-sep" />
-          Score&nbsp;: {formatPercent(player.final.bestScore)}
+          {t('certificate.score')}&nbsp;: {formatPercent(player.final.bestScore)}
         </p>
       </div>
 
@@ -54,7 +53,7 @@ export default function Certificate() {
         style={{ marginTop: 22 }}
         onClick={() => navigate('/accueil')}
       >
-        Retour à l’accueil
+        {t('quiz.backHome')}
       </button>
 
       <BottomNav />

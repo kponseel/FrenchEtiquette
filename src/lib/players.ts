@@ -1,5 +1,6 @@
 import type { AttemptResult, Player } from '../types'
 import { modules } from '../content/modules'
+import type { Issue, TranslationKey } from './i18n'
 
 // La persistance vit désormais côté serveur (voir api.ts + /api/index.php).
 // Ce module ne garde que des fonctions *pures* : validation, calcul du
@@ -34,13 +35,15 @@ export function pseudoTakenByOther(
   return players.some((p) => p.id !== id && normalizePseudo(p.pseudo) === norm)
 }
 
-/** Renvoie un message d'erreur si le pseudo est invalide, sinon null. */
-export function validatePseudo(pseudo: string): string | null {
+/**
+ * Renvoie un `Issue` (clé de traduction) si le pseudo est invalide, sinon null.
+ * Fonction pure : la traduction se fait à l'affichage.
+ */
+export function validatePseudo(pseudo: string): Issue | null {
   const trimmed = pseudo.trim()
-  if (trimmed.length < 2) return 'Au moins 2 caractères, je vous prie.'
-  if (trimmed.length > 24) return '24 caractères maximum.'
-  if (!/^[\p{L}\p{N} '._-]+$/u.test(trimmed))
-    return 'Lettres, chiffres et espaces uniquement.'
+  if (trimmed.length < 2) return { key: 'error.pseudoTooShort' }
+  if (trimmed.length > 24) return { key: 'error.pseudoTooLong' }
+  if (!/^[\p{L}\p{N} '._-]+$/u.test(trimmed)) return { key: 'error.pseudoCharset' }
   return null
 }
 
@@ -107,12 +110,12 @@ export function isCertified(player: Player): boolean {
   return player.final.passed
 }
 
-/** Titre honorifique du joueur, selon sa progression. */
-export function playerTitle(player: Player): string {
-  if (isCertified(player)) return 'Gentleman Certifié'
-  if (allModulesPassed(player)) return 'Aspirant Gentleman'
-  if (modulesPassed(player) > 0) return 'Apprenti'
-  return 'Novice'
+/** Clé de traduction du titre honorifique, selon la progression du joueur. */
+export function playerTitle(player: Player): TranslationKey {
+  if (isCertified(player)) return 'title.certified'
+  if (allModulesPassed(player)) return 'title.aspirant'
+  if (modulesPassed(player) > 0) return 'title.apprentice'
+  return 'title.novice'
 }
 
 /** Score de classement : récompense modules validés, score, et certification. */
@@ -129,7 +132,8 @@ export function rankingPoints(player: Player): number {
 export interface RankedPlayer {
   player: Player
   points: number
-  title: string
+  /** Clé de traduction du titre — à traduire à l'affichage. */
+  title: TranslationKey
   modulesPassed: number
   certified: boolean
   rank: number

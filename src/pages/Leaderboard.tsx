@@ -1,22 +1,24 @@
 import { usePlayer } from '../lib/PlayerContext'
 import { ranking, TOTAL_MODULES } from '../lib/players'
+import { useT } from '../lib/i18n'
 import BottomNav from '../components/BottomNav'
 
 export default function Leaderboard() {
   const { player, players } = usePlayer()
+  const t = useT()
   const board = ranking(players)
 
   return (
     <div className="screen screen--with-nav">
       <header style={{ marginBottom: 18 }}>
-        <p className="eyebrow">Le cercle</p>
+        <p className="eyebrow">{t('leaderboard.eyebrow')}</p>
         <h1 className="serif" style={{ fontSize: '2rem', marginTop: 4 }}>
-          Classement
+          {t('leaderboard.title')}
         </h1>
       </header>
 
       {board.length === 0 ? (
-        <p className="muted">Aucun joueur pour l’instant.</p>
+        <p className="muted">{t('leaderboard.empty')}</p>
       ) : (
         <div className="list">
           {board.map((entry) => (
@@ -33,12 +35,16 @@ export default function Leaderboard() {
                 <span className="rank-row__name">{entry.player.pseudo}</span>
                 <span className="rank-row__title" style={{ display: 'block' }}>
                   {entry.certified ? '✦ ' : ''}
-                  {entry.title} · {entry.modulesPassed}/{TOTAL_MODULES} modules
+                  {t(entry.title)} ·{' '}
+                  {t('leaderboard.modulesSuffix', {
+                    passed: entry.modulesPassed,
+                    total: TOTAL_MODULES,
+                  })}
                 </span>
               </span>
               <span className="rank-row__pts">
                 <strong>{entry.points}</strong>
-                <span>points</span>
+                <span>{t('leaderboard.points')}</span>
               </span>
             </div>
           ))}
@@ -46,7 +52,7 @@ export default function Leaderboard() {
       )}
 
       <p className="faint" style={{ fontSize: '0.78rem', marginTop: 22 }}>
-        Classement commun à tous les joueurs, mis à jour en direct.
+        {t('leaderboard.footnote')}
       </p>
 
       <BottomNav />
