@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { Module, ModuleProgress } from '../types'
 import { formatPercent, MODULE_TEST_SIZE } from '../lib/quiz'
+import { useT } from '../lib/i18n'
 import { CheckIcon } from './icons'
 import ProgressBar from './ProgressBar'
 
@@ -11,6 +12,7 @@ export default function ModuleCard({
   module: Module
   progress?: ModuleProgress
 }) {
+  const t = useT()
   const passed = progress?.passed ?? false
   const attempted = (progress?.attempts ?? 0) > 0
   const best = progress?.bestScore ?? 0
@@ -28,7 +30,7 @@ export default function ModuleCard({
         </div>
         {passed ? (
           <span className="badge badge--passed">
-            <CheckIcon width={13} height={13} /> Validé
+            <CheckIcon width={13} height={13} /> {t('module.passed')}
           </span>
         ) : attempted ? (
           <span className="badge badge--gold">{formatPercent(best)}</span>
@@ -40,13 +42,17 @@ export default function ModuleCard({
       </div>
 
       <div className="module-card__meta">
-        <span>{Math.min(MODULE_TEST_SIZE, module.questions.length)} questions par essai</span>
+        <span>
+          {t('module.questionsPerTry', {
+            count: Math.min(MODULE_TEST_SIZE, module.questions.length),
+          })}
+        </span>
         <span>
           {passed
-            ? 'Module validé'
+            ? t('module.passedLong')
             : attempted
-              ? `Meilleur score ${formatPercent(best)}`
-              : 'À découvrir'}
+              ? t('module.bestScore', { score: formatPercent(best) })
+              : t('module.discover')}
         </span>
       </div>
     </Link>
