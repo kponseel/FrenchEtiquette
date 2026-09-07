@@ -4,11 +4,14 @@ import { useNavigate } from 'react-router-dom'
 import { usePlayer } from '../lib/PlayerContext'
 import { playerTitle } from '../lib/players'
 import { PIN_MAX, PIN_MIN } from '../lib/pin'
+import { useT } from '../lib/i18n'
+import LanguageToggle from '../components/LanguageToggle'
 import type { Player } from '../types'
 
 type View = 'home' | 'unlock' | 'saved'
 
 export default function Login() {
+  const t = useT()
   const { createProfile, loginExisting, players, loadError } = usePlayer()
   const navigate = useNavigate()
 
@@ -46,7 +49,7 @@ export default function Login() {
       setError(null)
       setView('saved')
     } else {
-      setError(res.error ?? 'Une erreur est survenue.')
+      setError(res.error ?? t('error.generic'))
     }
   }
 
@@ -55,7 +58,7 @@ export default function Login() {
     const res = await loginExisting(id, code)
     setBusy(false)
     if (res.ok) enter()
-    else setError(res.error ?? 'Code incorrect.')
+    else setError(res.error ?? t('error.wrongCode'))
   }
 
   function selectProfile(p: Player) {
@@ -77,14 +80,14 @@ export default function Login() {
       setCopied(true)
       setTimeout(() => setCopied(false), 1800)
     } catch {
-      setError('Copie impossible — notez le code à la main.')
+      setError(t('login.copyFailed'))
     }
   }
 
   async function sendByEmail() {
     const to = email.trim()
     if (!/^\S+@\S+\.\S+$/.test(to)) {
-      setError("Indiquez une adresse email valide pour recevoir le code.")
+      setError(t('login.emailInvalid'))
       return
     }
     setBusy(true)
@@ -93,7 +96,7 @@ export default function Login() {
       setEmailSent(true)
       setError(null)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Impossible d’envoyer l’email.")
+      setError(err instanceof Error ? err.message : t('login.emailFailed'))
     } finally {
       setBusy(false)
     }
@@ -101,18 +104,21 @@ export default function Login() {
 
   return (
     <div className="screen screen--centered">
+      {/* Premier contact : la bascule de langue doit être visible d'emblée. */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <LanguageToggle />
+      </div>
       <div className="center" style={{ marginBottom: 28 }}>
         <div className="brandmark">
           <span className="brandmark__monogram">É</span>
         </div>
         <h1 className="display" style={{ marginTop: 18 }}>
-          L’Étiquette
+          {t('brand.name')}
         </h1>
         <hr className="rule rule--center" />
         {view === 'home' && (
           <p className="lead" style={{ maxWidth: 300, margin: '0 auto' }}>
-            Maîtrisez l’art du savoir-vivre à la française&nbsp;— et devenez
-            Gentleman.
+            {t('brand.tagline')}
           </p>
         )}
       </div>
@@ -124,18 +130,18 @@ export default function Login() {
               className="form-error"
               style={{ textAlign: 'center', marginBottom: 16 }}
             >
-              {loadError} Vérifiez votre connexion, puis réessayez.
+              {t('login.loadError', { error: loadError })}
             </p>
           )}
           <form onSubmit={handleCreate} className="stack" style={{ ['--gap' as string]: '16px' }}>
             <label className="field">
-              <span className="field__label">Choisissez votre nom</span>
+              <span className="field__label">{t('login.pseudoLabel')}</span>
               <input
                 className={'input' + (error ? ' has-error' : '')}
                 type="text"
                 autoCapitalize="words"
                 autoComplete="off"
-                placeholder="ex. Philéas Fogg"
+                placeholder={t('login.pseudoPlaceholder')}
                 value={pseudo}
                 maxLength={24}
                 onChange={(e) => {
@@ -147,20 +153,20 @@ export default function Login() {
             </label>
             <label className="field">
               <span className="field__label">
-                Créez un code · {PIN_MIN} à {PIN_MAX} chiffres
+                {t('login.pinLabel', { min: PIN_MIN, max: PIN_MAX })}
               </span>
               <input
                 className={'input' + (error ? ' has-error' : '')}
                 type="text"
                 inputMode="numeric"
                 autoComplete="off"
-                placeholder="ex. 1837"
+                placeholder={t('login.pinPlaceholder')}
                 value={pin}
                 onChange={(e) => onPinChange(e.target.value)}
                 aria-invalid={!!error}
               />
               <span className="faint" style={{ display: 'block', marginTop: 8, fontSize: '0.78rem' }}>
-                Il protège l’accès à votre profil, depuis n’importe quel appareil.
+                {t('login.pinHint')}
               </span>
             </label>
             {error && <p className="form-error">{error}</p>}
@@ -169,14 +175,14 @@ export default function Login() {
               className="btn btn--primary btn--block"
               disabled={busy || !pseudo.trim() || pin.length < PIN_MIN}
             >
-              {busy ? 'Un instant…' : 'Créer mon profil'}
+              {busy ? t('common.wait') : t('login.create')}
             </button>
           </form>
 
           {players.length > 0 && (
             <div style={{ marginTop: 34 }}>
               <p className="eyebrow center" style={{ marginBottom: 14 }}>
-                Reprendre un profil
+                {t('login.resume')}
               </p>
               <div className="list">
                 {players.map((p) => (
@@ -197,7 +203,7 @@ export default function Login() {
                       <span className="rank-row__name" style={{ display: 'block' }}>
                         {p.pseudo}
                       </span>
-                      <span className="rank-row__title">{playerTitle(p)}</span>
+                      <span className="rank-row__title">{t(playerTitle(p))}</span>
                     </span>
                     <span className="spacer" />
                     <span className="faint" aria-hidden="true">
@@ -224,11 +230,11 @@ export default function Login() {
               {selected.pseudo}
             </p>
             <p className="muted" style={{ fontSize: '0.88rem' }}>
-              Entrez votre code d’accès
+              {t('login.enterCode')}
             </p>
           </div>
           <label className="field">
-            <span className="field__label">Code</span>
+            <span className="field__label">{t('login.code')}</span>
             <input
               className={'input' + (error ? ' has-error' : '')}
               type="password"
@@ -246,7 +252,7 @@ export default function Login() {
             className="btn btn--primary btn--block"
             disabled={busy || pin.length < PIN_MIN}
           >
-            {busy ? 'Vérification…' : 'Déverrouiller'}
+            {busy ? t('login.checking') : t('login.unlock')}
           </button>
           <button
             type="button"
@@ -258,7 +264,7 @@ export default function Login() {
               setError(null)
             }}
           >
-            ← Retour
+            {t('login.back')}
           </button>
         </form>
       )}
@@ -266,27 +272,26 @@ export default function Login() {
       {view === 'saved' && (
         <div className="stack" style={{ ['--gap' as string]: '16px' }}>
           <div className="center">
-            <p className="eyebrow">Profil créé</p>
+            <p className="eyebrow">{t('login.created')}</p>
             <h2 className="serif" style={{ fontSize: '1.4rem', margin: '6px 0 4px' }}>
-              Notez votre code
+              {t('login.noteCode')}
             </h2>
             <p className="muted" style={{ fontSize: '0.88rem', maxWidth: 300, margin: '0 auto 14px' }}>
-              Il vous sera demandé pour rouvrir le profil «&nbsp;{pseudo}&nbsp;».
-              Conservez-le précieusement.
+              {t('login.noteCodeHint', { pseudo })}
             </p>
             <div className="pincode">{createdPin}</div>
           </div>
           <button type="button" className="btn btn--ghost btn--block" onClick={copyPin}>
-            {copied ? 'Copié ✓' : 'Copier le code'}
+            {copied ? t('login.copied') : t('login.copy')}
           </button>
           <label className="field">
-            <span className="field__label">Recevoir le code par email (facultatif)</span>
+            <span className="field__label">{t('login.emailLabel')}</span>
             <input
               className="input"
               type="email"
               inputMode="email"
               autoComplete="email"
-              placeholder="vous@exemple.fr"
+              placeholder={t('login.emailPlaceholder')}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value)
@@ -294,11 +299,11 @@ export default function Login() {
               }}
             />
             <span className="faint" style={{ display: 'block', marginTop: 8, fontSize: '0.78rem' }}>
-              Utilisée une seule fois pour vous envoyer le code — jamais enregistrée.
+              {t('login.emailHint')}
             </span>
           </label>
           <button type="button" className="btn btn--ghost btn--block" onClick={sendByEmail} disabled={busy || emailSent}>
-            {busy ? 'Envoi…' : emailSent ? 'Code envoyé ✓' : 'Envoyer le code par email'}
+            {busy ? t('login.emailSending') : emailSent ? t('login.emailSent') : t('login.emailSend')}
           </button>
           {error && <p className="form-error">{error}</p>}
           <button
@@ -307,7 +312,7 @@ export default function Login() {
             onClick={() => openDirect(createdId, createdPin)}
             disabled={busy}
           >
-            {busy ? 'Un instant…' : 'Entrer dans le cercle'}
+            {busy ? t('common.wait') : t('login.enterCircle')}
           </button>
         </div>
       )}
