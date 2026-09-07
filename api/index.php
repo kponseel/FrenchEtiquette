@@ -52,6 +52,62 @@ function now_ms(): int
 }
 
 // ---------------------------------------------------------------------------
+// Messages bilingues.
+//
+// Le client joint « lang » à chaque requête (voir src/lib/api.ts). Les
+// fonctions de validation renvoient un IDENTIFIANT de message, traduit au
+// moment de l'envoi : elles restent ainsi indépendantes de la langue.
+// ---------------------------------------------------------------------------
+$LANG = 'fr';
+
+const MESSAGES = [
+    'pseudo.short'   => ['fr' => 'Au moins 2 caractères, je vous prie.',
+                         'en' => 'At least 2 characters, if you please.'],
+    'pseudo.long'    => ['fr' => '24 caractères maximum.',
+                         'en' => '24 characters maximum.'],
+    'pseudo.charset' => ['fr' => 'Lettres, chiffres et espaces uniquement.',
+                         'en' => 'Letters, digits and spaces only.'],
+    'pseudo.missing' => ['fr' => 'Pseudo manquant.',
+                         'en' => 'Name missing.'],
+    'pseudo.taken'   => ['fr' => 'Ce nom est déjà pris.',
+                         'en' => 'That name is already taken.'],
+    'pin.digits'     => ['fr' => 'Le code ne doit contenir que des chiffres.',
+                         'en' => 'The code must contain digits only.'],
+    'pin.short'      => ['fr' => 'Au moins 2 chiffres, je vous prie.',
+                         'en' => 'At least 2 digits, if you please.'],
+    'pin.long'       => ['fr' => '10 chiffres maximum.',
+                         'en' => '10 digits maximum.'],
+    'pin.wrong'      => ['fr' => 'Code incorrect.',
+                         'en' => 'Incorrect code.'],
+    'session.expired' => ['fr' => 'Session expirée. Reconnectez-vous.',
+                          'en' => 'Session expired. Please sign in again.'],
+    'player.missing' => ['fr' => 'Profil introuvable.',
+                         'en' => 'Profile not found.'],
+    'result.invalid' => ['fr' => 'Résultat invalide.',
+                         'en' => 'Invalid result.'],
+    'module.missing' => ['fr' => 'Module manquant.',
+                         'en' => 'Module missing.'],
+    'email.invalid'  => ['fr' => 'Adresse email invalide.',
+                         'en' => 'Invalid email address.'],
+    'email.failed'   => ['fr' => "Impossible d'envoyer l'email. Notez votre code manuellement.",
+                         'en' => 'The email could not be sent. Please note your code down.'],
+    'action.unknown' => ['fr' => 'Action inconnue.',
+                         'en' => 'Unknown action.'],
+    'server.error'   => ['fr' => 'Erreur serveur.',
+                         'en' => 'Server error.'],
+];
+
+/** Traduit un identifiant de message dans la langue de la requête. */
+function msg(string $id): string
+{
+    global $LANG;
+    if (!isset(MESSAGES[$id])) {
+        return $id;
+    }
+    return MESSAGES[$id][$LANG] ?? MESSAGES[$id]['fr'];
+}
+
+// ---------------------------------------------------------------------------
 // Pseudo : normalisation (insensible casse/accents) + validation.
 // Doit rester cohérent avec normalizePseudo()/validatePseudo() côté client.
 // ---------------------------------------------------------------------------
@@ -84,13 +140,13 @@ function validate_pseudo(string $p): ?string
     $t = trim($p);
     $len = function_exists('mb_strlen') ? mb_strlen($t, 'UTF-8') : strlen($t);
     if ($len < 2) {
-        return 'Au moins 2 caractères, je vous prie.';
+        return 'pseudo.short';
     }
     if ($len > 24) {
-        return '24 caractères maximum.';
+        return 'pseudo.long';
     }
     if (!preg_match("/^[\p{L}\p{N} '._-]+$/u", $t)) {
-        return 'Lettres, chiffres et espaces uniquement.';
+        return 'pseudo.charset';
     }
     return null;
 }
@@ -98,14 +154,14 @@ function validate_pseudo(string $p): ?string
 function validate_pin(string $pin): ?string
 {
     if (!preg_match('/^\d+$/', $pin)) {
-        return 'Le code ne doit contenir que des chiffres.';
+        return 'pin.digits';
     }
     $l = strlen($pin);
     if ($l < 2) {
-        return 'Au moins 2 chiffres, je vous prie.';
+        return 'pin.short';
     }
     if ($l > 10) {
-        return '10 chiffres maximum.';
+        return 'pin.long';
     }
     return null;
 }
@@ -201,7 +257,7 @@ function require_player(PDO $db, array $in): array
     }
     $row = row_by_token($db, $token);
     if (!$row) {
-        fail('Session expirée. Reconnectez-vous.', 401);
+        fail(msg('session.expired'), 401);
     }
     return $row;
 }
@@ -210,7 +266,7 @@ function require_player(PDO $db, array $in): array
 function sanitize_result($r): array
 {
     if (!is_array($r)) {
-        fail('Résultat invalide.', 422);
+        fail(msg('result.invalid'), 422);
     }
     $score = (float) ($r['score'] ?? 0);
     if ($score < 0) {
@@ -249,6 +305,12 @@ try {
         $in = [];
     }
     $action = (string) ($in['action'] ?? ($_GET['action'] ?? ''));
+
+    // Langue de la requête (voir setApiLang côté client). Toute valeur inconnue
+    // retombe sur le français.
+    $requested = (string) ($in['lang'] ?? ($_GET['lang'] ?? 'fr'));
+    $LANG = isset(MESSAGES['server.error'][$requested]) ? $requested : 'fr';
+
     $db = db();
 
     switch ($action) {
@@ -268,17 +330,17 @@ try {
             $pseudo = (string) ($in['pseudo'] ?? '');
             $pin = (string) ($in['pin'] ?? '');
             if ($e = validate_pseudo($pseudo)) {
-                fail($e, 422);
+                fail(msg($e), 422);
             }
             if ($e = validate_pin($pin)) {
-                fail($e, 422);
+                fail(msg($e), 422);
             }
             $norm = normalize_pseudo($pseudo);
 
             $check = $db->prepare('SELECT 1 FROM players WHERE pseudo_norm = ?');
             $check->execute([$norm]);
             if ($check->fetchColumn()) {
-                fail('Ce nom est déjà pris.', 409);
+                fail(msg('pseudo.taken'), 409);
             }
 
             $id = bin2hex(random_bytes(16));
@@ -292,7 +354,7 @@ try {
                 $ins->execute([$id, trim($pseudo), $norm, $hash, now_ms(), $final]);
             } catch (PDOException $e) {
                 // Course sur l'index unique pseudo_norm.
-                fail('Ce nom est déjà pris.', 409);
+                fail(msg('pseudo.taken'), 409);
             }
 
             send(['player' => public_player(row_by_id($db, $id)), 'players' => all_players($db)]);
@@ -305,10 +367,10 @@ try {
             $pin = (string) ($in['pin'] ?? '');
             $row = row_by_id($db, $id);
             if (!$row) {
-                fail('Profil introuvable.', 404);
+                fail(msg('player.missing'), 404);
             }
             if (!password_verify($pin, $row['pin_hash'])) {
-                fail('Code incorrect.', 401);
+                fail(msg('pin.wrong'), 401);
             }
             $token = bin2hex(random_bytes(32));
             $db->prepare('UPDATE players SET token = ? WHERE id = ?')->execute([$token, $id]);
@@ -325,13 +387,13 @@ try {
             $row = require_player($db, $in);
             $pseudo = (string) ($in['pseudo'] ?? '');
             if ($e = validate_pseudo($pseudo)) {
-                fail($e, 422);
+                fail(msg($e), 422);
             }
             $norm = normalize_pseudo($pseudo);
             $check = $db->prepare('SELECT 1 FROM players WHERE pseudo_norm = ? AND id <> ?');
             $check->execute([$norm, $row['id']]);
             if ($check->fetchColumn()) {
-                fail('Ce nom est déjà pris.', 409);
+                fail(msg('pseudo.taken'), 409);
             }
             $db->prepare('UPDATE players SET pseudo = ?, pseudo_norm = ? WHERE id = ?')
                 ->execute([trim($pseudo), $norm, $row['id']]);
@@ -347,7 +409,7 @@ try {
             $row = require_player($db, $in);
             $pin = (string) ($in['pin'] ?? '');
             if ($e = validate_pin($pin)) {
-                fail($e, 422);
+                fail(msg($e), 422);
             }
             $hash = password_hash($pin, PASSWORD_DEFAULT);
             $db->prepare('UPDATE players SET pin_hash = ? WHERE id = ?')
@@ -364,7 +426,7 @@ try {
             $row = require_player($db, $in);
             $moduleId = (string) ($in['moduleId'] ?? '');
             if ($moduleId === '') {
-                fail('Module manquant.', 422);
+                fail(msg('module.missing'), 422);
             }
             $result = sanitize_result($in['result'] ?? null);
             $mod = json_decode(($row['modules'] ?? '') !== '' ? $row['modules'] : '{}', true);
@@ -422,20 +484,30 @@ try {
             $pseudo = trim((string) ($in['pseudo'] ?? ''));
             $pin = (string) ($in['pin'] ?? '');
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                fail('Adresse email invalide.', 422);
+                fail(msg('email.invalid'), 422);
             }
             if ($pseudo === '') {
-                fail('Pseudo manquant.', 422);
+                fail(msg('pseudo.missing'), 422);
             }
             if ($e = validate_pin($pin)) {
-                fail($e, 422);
+                fail(msg($e), 422);
             }
-            $subject = '=?UTF-8?B?' . base64_encode("Mon code d'accès — L'Étiquette") . '?=';
-            $body = "Bonjour,\r\n\r\n"
-                . "Voici le code d'accès à votre profil \xc2\xab\xc2\xa0{$pseudo}\xc2\xa0\xc2\xbb sur L'Étiquette :\r\n\r\n"
-                . "Code : {$pin}\r\n\r\n"
-                . "Conservez-le précieusement pour retrouver votre progression depuis n'importe quel appareil.\r\n\r\n"
-                . "\xe2\x80\x94 L'Étiquette";
+            if ($LANG === 'en') {
+                $subject = "Your access code — L'Étiquette";
+                $body = "Hello,\r\n\r\n"
+                    . "Here is the access code for your profile \xe2\x80\x9c{$pseudo}\xe2\x80\x9d on L'Étiquette:\r\n\r\n"
+                    . "Code: {$pin}\r\n\r\n"
+                    . "Keep it safe to pick up your progress from any device.\r\n\r\n"
+                    . "\xe2\x80\x94 L'Étiquette";
+            } else {
+                $subject = "Mon code d'accès — L'Étiquette";
+                $body = "Bonjour,\r\n\r\n"
+                    . "Voici le code d'accès à votre profil \xc2\xab\xc2\xa0{$pseudo}\xc2\xa0\xc2\xbb sur L'Étiquette :\r\n\r\n"
+                    . "Code : {$pin}\r\n\r\n"
+                    . "Conservez-le précieusement pour retrouver votre progression depuis n'importe quel appareil.\r\n\r\n"
+                    . "\xe2\x80\x94 L'Étiquette";
+            }
+            $subject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
             $headers = implode("\r\n", [
                 'MIME-Version: 1.0',
                 'Content-Type: text/plain; charset=UTF-8',
@@ -444,7 +516,7 @@ try {
             ]);
             $ok = @mail($email, $subject, $body, $headers);
             if (!$ok) {
-                fail("Impossible d'envoyer l'email. Notez votre code manuellement.", 500);
+                fail(msg('email.failed'), 500);
             }
             send(['ok' => true]);
             break;
@@ -461,8 +533,8 @@ try {
         }
 
         default:
-            fail('Action inconnue.', 404);
+            fail(msg('action.unknown'), 404);
     }
 } catch (Throwable $e) {
-    fail($DEBUG ? ('Erreur serveur : ' . $e->getMessage()) : 'Erreur serveur.', 500);
+    fail($DEBUG ? (msg('server.error') . ' ' . $e->getMessage()) : msg('server.error'), 500);
 }
