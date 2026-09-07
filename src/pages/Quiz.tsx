@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { usePlayer } from '../lib/PlayerContext'
-import { modules, moduleById } from '../content/modules'
+import { modulesFor, moduleById } from '../content/modules'
 import { isFinalUnlocked } from '../lib/players'
 import {
   buildFinalTest,
@@ -11,8 +11,10 @@ import {
   prepareQuiz,
   type PreparedQuestion,
 } from '../lib/quiz'
+import { useI18n, type TranslationKey } from '../lib/i18n'
 import type { AttemptResult } from '../types'
 import ProgressBar from '../components/ProgressBar'
+import RichText from '../components/RichText'
 import ScoreRing from '../components/ScoreRing'
 import { ChevronLeft } from '../components/icons'
 
@@ -34,13 +36,18 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { player, saveModuleResult, saveFinalResult } = usePlayer()
+  const { t, locale } = useI18n()
 
-  const mod = mode === 'module' ? moduleById(id ?? '') : undefined
+  const mod = mode === 'module' ? moduleById(id ?? '', locale) : undefined
 
+  // Les questions ne sont tirées qu'au montage (et au « Recommencer ») : changer
+  // de langue en cours d'épreuve ne réinitialise donc pas la session en cours.
   const build = useCallback(
     (): PreparedQuestion[] =>
-      mode === 'final' ? buildFinalTest(modules) : prepareQuiz(mod?.questions ?? []),
-    [mode, mod],
+      mode === 'final'
+        ? buildFinalTest(modulesFor(locale))
+        : prepareQuiz(mod?.questions ?? []),
+    [mode, mod, locale],
   )
 
   const [questions, setQuestions] = useState<PreparedQuestion[]>(build)
@@ -54,7 +61,7 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
   if (mode === 'module' && !mod) return <Navigate to="/accueil" replace />
   if (mode === 'final' && !isFinalUnlocked(player)) return <Navigate to="/accueil" replace />
 
-  const title = mode === 'final' ? 'Examen de certification' : mod!.title
+  const title = mode === 'final' ? t('home.finalExam') : mod!.title
   const current = questions[index]
   const revealed = chosen !== null
   const isLast = index + 1 >= questions.length
@@ -95,23 +102,23 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
         <div className="center" style={{ paddingTop: 12 }}>
           <p className="eyebrow">{title}</p>
           <h1 className="serif" style={{ fontSize: '1.9rem', margin: '6px 0 22px' }}>
-            {result.passed ? 'Brillant.' : 'Pas tout à fait.'}
+            {result.passed ? t('quiz.brilliant') : t('quiz.notQuite')}
           </h1>
           <ScoreRing value={result.score} passed={result.passed} />
           <p className="lead" style={{ marginTop: 20 }}>
-            {result.correct} bonnes réponses sur {result.total}.
+            {t('quiz.correctCount', { correct: result.correct, total: result.total })}
           </p>
           <p className="muted" style={{ fontSize: '0.9rem', marginTop: 6 }}>
             {result.passed
               ? certifiedNow
-                ? 'Vous voici Gentleman certifié.'
-                : 'Module validé avec les honneurs.'
-              : `Il faut atteindre ${formatPercent(PASS_THRESHOLD)} pour valider. Persévérez.`}
+                ? t('quiz.nowCertified')
+                : t('quiz.modulePassed')
+              : t('quiz.needThreshold', { threshold: formatPercent(PASS_THRESHOLD) })}
           </p>
 
           {unlockedNow && (
             <div className="badge badge--gold" style={{ marginTop: 16 }}>
-              ✦ L’examen final est désormais débloqué
+              {t('quiz.finalUnlocked')}
             </div>
           )}
         </div>
@@ -119,38 +126,41 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
         <div className="stack" style={{ ['--gap' as string]: '12px', marginTop: 28 }}>
           {certifiedNow ? (
             <Link to="/certificat" className="btn btn--gold btn--block" replace>
-              Voir mon certificat
+              {t('quiz.seeCertificate')}
             </Link>
           ) : (
             <button className="btn btn--primary btn--block" onClick={restart}>
-              Recommencer
+              {t('quiz.restart')}
             </button>
           )}
           <button
             className="btn btn--ghost btn--block"
             onClick={() => navigate('/accueil', { replace: true })}
           >
-            Retour à l’accueil
+            {t('quiz.backHome')}
           </button>
         </div>
 
         {wrong.length > 0 && (
           <div style={{ marginTop: 34 }}>
             <div className="section-head">
-              <h2>À revoir</h2>
+              <h2>{t('quiz.toReview')}</h2>
               <span className="faint">{wrong.length}</span>
             </div>
             {wrong.map((a) => (
               <div key={a.q.id} className="review-item">
-                <p className="review-item__q">{a.q.prompt}</p>
+                <p className="review-item__q">
+                  <RichText>{a.q.prompt}</RichText>
+                </p>
                 <p className="review-item__a ko">
-                  Votre réponse&nbsp;: {a.q.choices[a.chosen]}
+                  {t('quiz.yourAnswer')}&nbsp;: <RichText>{a.q.choices[a.chosen]}</RichText>
                 </p>
                 <p className="review-item__a ok">
-                  Bonne réponse&nbsp;: {a.q.choices[a.q.correctIndex]}
+                  {t('quiz.rightAnswer')}&nbsp;:{' '}
+                  <RichText>{a.q.choices[a.q.correctIndex]}</RichText>
                 </p>
                 <p className="muted" style={{ fontSize: '0.88rem', marginTop: 6 }}>
-                  {a.q.explanation}
+                  <RichText>{a.q.explanation}</RichText>
                 </p>
               </div>
             ))}
@@ -167,9 +177,9 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
         <button
           className="topbar__back"
           onClick={() => navigate('/accueil')}
-          aria-label="Quitter"
+          aria-label={t('quiz.quit')}
         >
-          <ChevronLeft /> Quitter
+          <ChevronLeft /> {t('quiz.quit')}
         </button>
         <span className="topbar__title" style={{ fontSize: '1rem' }}>
           {title}
@@ -183,11 +193,11 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
           style={{ marginTop: 0, marginBottom: 10 }}
         >
           <span className="eyebrow">
-            Question {index + 1} / {questions.length}
+            {t('quiz.question', { index: index + 1, total: questions.length })}
           </span>
           {current.difficulty && (
             <span className={'qchip ' + (DIFF_CLASS[current.difficulty] ?? '')}>
-              {current.difficulty}
+              {t(`difficulty.${current.difficulty}` as TranslationKey)}
             </span>
           )}
         </div>
@@ -199,7 +209,7 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
           className="serif"
           style={{ fontSize: '1.6rem', lineHeight: 1.2, marginBottom: 22 }}
         >
-          {current.prompt}
+          <RichText>{current.prompt}</RichText>
         </h1>
 
         <div className="stack" style={{ ['--gap' as string]: '12px' }}>
@@ -225,7 +235,9 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
               onClick={() => setChosen(i)}
             >
               <span className="choice__key">{KEYS[i]}</span>
-              <span className="choice__text">{choice}</span>
+              <span className="choice__text">
+                <RichText>{choice}</RichText>
+              </span>
               {mark && <span className="choice__mark">{mark}</span>}
             </button>
           )
@@ -243,9 +255,13 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
             style={{ marginTop: 20 }}
           >
             <p className="explain__label">
-              {chosen === current.correctIndex ? 'Bien vu' : 'À retenir'}
+              {chosen === current.correctIndex
+                ? t('quiz.wellSpotted')
+                : t('quiz.remember')}
             </p>
-            <p className="explain__body">{current.explanation}</p>
+            <p className="explain__body">
+              <RichText>{current.explanation}</RichText>
+            </p>
           </div>
 
           <button
@@ -253,7 +269,7 @@ export default function Quiz({ mode }: { mode: 'module' | 'final' }) {
             style={{ marginTop: 20 }}
             onClick={handleContinue}
           >
-            {isLast ? 'Voir le résultat' : 'Continuer'}
+            {isLast ? t('quiz.seeResult') : t('quiz.continue')}
           </button>
         </>
       )}
