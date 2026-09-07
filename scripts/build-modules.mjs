@@ -1,15 +1,23 @@
-// Générateur de contenu pour L'Étiquette.
+// Générateur de contenu pour L'Étiquette (bilingue FR / EN).
 //
-// Lit le QCM source (CSV) et produit `src/content/modules.ts`.
-// Usage : `npm run build:content` (ou `node scripts/build-modules.mjs [chemin.csv]`).
+// Lit le QCM source français (CSV) et, s'il existe, sa traduction anglaise,
+// puis produit `src/content/modules.ts`.
+// Usage : `npm run build:content`.
 //
-// Le CSV doit avoir les colonnes :
+// CSV français — colonnes requises :
 //   Ref, Theme, Sous-theme, Statut, Difficulte, Question, A, B, C, D,
 //   Bonne_reponse, Explication
+// CSV anglais — colonnes requises :
+//   Ref, Question, A, B, C, D, Explication  (+ Sous-theme facultatif)
+//
+// L'anglais est un CALQUE posé sur la structure française : on part de la
+// question française et on ne remplace que le texte. `id`, `correctIndex` et
+// `difficulty` viennent donc toujours du français — il est structurellement
+// impossible que la version anglaise désigne une autre bonne réponse.
 // Les questions sont regroupées en modules d'après le préfixe de `Ref`
 // (T1, T2, …), dont les métadonnées d'affichage sont définies dans META.
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -19,40 +27,73 @@ const ROOT = resolve(__dirname, '..')
 const CSV_PATH = process.argv[2]
   ? resolve(process.cwd(), process.argv[2])
   : resolve(ROOT, 'content/qcm-savoir-vivre.csv')
+const CSV_EN_PATH = resolve(ROOT, 'content/qcm-savoir-vivre.en.csv')
 const OUT_PATH = resolve(ROOT, 'src/content/modules.ts')
 
 // Métadonnées d'affichage des modules, indexées par préfixe de Ref.
 const META = {
   T1: {
     id: 'affaires',
-    title: 'Affaires & Gentleman’s Agreement',
-    subtitle: 'Parole donnée, cercles & discrétion',
-    description:
-      'Gentleman’s agreement, cooptation, cadeaux d’affaires, ponctualité… les codes feutrés du monde des affaires à la française.',
+    fr: {
+      title: 'Affaires & Gentleman’s Agreement',
+      subtitle: 'Parole donnée, cercles & discrétion',
+      description:
+        'Gentleman’s agreement, cooptation, cadeaux d’affaires, ponctualité… les codes feutrés du monde des affaires à la française.',
+    },
+    en: {
+      title: 'Business & the Gentleman’s Agreement',
+      subtitle: 'One’s word, circles & discretion',
+      description:
+        'Gentleman’s agreements, co-optation, business gifts, punctuality — the hushed codes of French business life.',
+    },
     motif: '🤝',
   },
   T2: {
     id: 'conversation',
-    title: 'Conversation & Discrétion',
-    subtitle: 'Sujets, ton, tutoiement & tact',
-    description:
-      'Sujets tabous, art de dire non, tutoiement, protocole épistolaire… converser avec esprit sans jamais froisser.',
+    fr: {
+      title: 'Conversation & Discrétion',
+      subtitle: 'Sujets, ton, tutoiement & tact',
+      description:
+        'Sujets tabous, art de dire non, tutoiement, protocole épistolaire… converser avec esprit sans jamais froisser.',
+    },
+    en: {
+      title: 'Conversation & Discretion',
+      subtitle: 'Subjects, tone, forms of address & tact',
+      description:
+        'Taboo subjects, the art of refusal, tu versus vous, letter-writing protocol — conversing with wit and never giving offence.',
+    },
     motif: '🕯',
   },
   T3: {
     id: 'table',
-    title: 'Table & Réceptions',
-    subtitle: 'Couverts, vins, fromages & préséances',
-    description:
-      'Placement, couverts, service du vin, art du fromage, remerciements… le repas, là où se révèle l’éducation.',
+    fr: {
+      title: 'Table & Réceptions',
+      subtitle: 'Couverts, vins, fromages & préséances',
+      description:
+        'Placement, couverts, service du vin, art du fromage, remerciements… le repas, là où se révèle l’éducation.',
+    },
+    en: {
+      title: 'The Table & Entertaining',
+      subtitle: 'Cutlery, wines, cheeses & precedence',
+      description:
+        'Seating, cutlery, serving wine, the art of cheese, thanking one’s host — the meal, where breeding shows.',
+    },
     motif: '🍽',
   },
   T4: {
     id: 'elegance',
-    title: 'Élégance & Dress Code',
-    subtitle: 'Tenue, posture & luxe discret',
-    description:
-      'White tie, black tie, luxe discret, posture, bise et galanterie… l’art de paraître sans ostentation.',
+    fr: {
+      title: 'Élégance & Dress Code',
+      subtitle: 'Tenue, posture & luxe discret',
+      description:
+        'White tie, black tie, luxe discret, posture, bise et galanterie… l’art de paraître sans ostentation.',
+    },
+    en: {
+      title: 'Elegance & Dress Codes',
+      subtitle: 'Dress, bearing & quiet luxury',
+      description:
+        'White tie, black tie, quiet luxury, bearing, la bise and gallantry — the art of appearing without ostentation.',
+    },
     motif: '🎩',
   },
 }
@@ -102,31 +143,41 @@ function parseCsv(text) {
   return rows
 }
 
-const text = readFileSync(CSV_PATH, 'utf8').replace(/^﻿/, '')
-const rows = parseCsv(text).filter(
-  (r) => r.length > 1 || (r.length === 1 && r[0].trim() !== ''),
-)
-const header = rows.shift().map((h) => h.replace(/^﻿/, '').trim())
-const col = (name) => {
-  const idx = header.indexOf(name)
-  if (idx === -1) throw new Error(`Colonne manquante dans le CSV : ${name}`)
-  return idx
+/** Lit un CSV et renvoie { header, rows, col(name) }. */
+function readCsv(path) {
+  const text = readFileSync(path, 'utf8').replace(/^﻿/, '')
+  const rows = parseCsv(text).filter(
+    (r) => r.length > 1 || (r.length === 1 && r[0].trim() !== ''),
+  )
+  const header = rows.shift().map((h) => h.replace(/^﻿/, '').trim())
+  const col = (name, required = true) => {
+    const idx = header.indexOf(name)
+    if (idx === -1 && required)
+      throw new Error(`Colonne manquante dans ${path} : ${name}`)
+    return idx
+  }
+  return { rows, col }
 }
+
+// ---------------------------------------------------------------------------
+// 1. Français — structure canonique
+// ---------------------------------------------------------------------------
+const { rows: frRows, col: frCol } = readCsv(CSV_PATH)
 const C = {
-  ref: col('Ref'),
-  sous: col('Sous-theme'),
-  diff: col('Difficulte'),
-  q: col('Question'),
-  a: col('A'),
-  b: col('B'),
-  c: col('C'),
-  d: col('D'),
-  bonne: col('Bonne_reponse'),
-  expl: col('Explication'),
+  ref: frCol('Ref'),
+  sous: frCol('Sous-theme'),
+  diff: frCol('Difficulte'),
+  q: frCol('Question'),
+  a: frCol('A'),
+  b: frCol('B'),
+  c: frCol('C'),
+  d: frCol('D'),
+  bonne: frCol('Bonne_reponse'),
+  expl: frCol('Explication'),
 }
 
 const byPrefix = new Map()
-for (const r of rows) {
+for (const r of frRows) {
   const ref = (r[C.ref] ?? '').trim()
   if (!ref) continue
   const prefix = ref.split('-')[0]
@@ -156,28 +207,115 @@ for (const r of rows) {
     tag: (r[C.sous] ?? '').trim(),
   }
   if (!byPrefix.has(prefix)) byPrefix.set(prefix, [])
-  byPrefix.get(prefix).push(question)
+  byPrefix.get(prefix).push({ ref, question })
 }
 
-const modules = ORDER.filter((p) => byPrefix.has(p)).map((p) => ({
-  ...META[p],
-  questions: byPrefix.get(p),
-}))
+if (byPrefix.size === 0) throw new Error('Aucune question trouvée dans le CSV.')
 
-if (modules.length === 0) throw new Error('Aucune question trouvée dans le CSV.')
+// ---------------------------------------------------------------------------
+// 2. Anglais — calque de texte, indexé par Ref
+// ---------------------------------------------------------------------------
+const enByRef = new Map()
+let enAvailable = false
+if (existsSync(CSV_EN_PATH)) {
+  enAvailable = true
+  const { rows: enRows, col: enCol } = readCsv(CSV_EN_PATH)
+  const E = {
+    ref: enCol('Ref'),
+    sous: enCol('Sous-theme', false),
+    q: enCol('Question'),
+    a: enCol('A'),
+    b: enCol('B'),
+    c: enCol('C'),
+    d: enCol('D'),
+    expl: enCol('Explication'),
+  }
+  for (const r of enRows) {
+    const ref = (r[E.ref] ?? '').trim()
+    if (!ref) continue
+    const choices = [r[E.a], r[E.b], r[E.c], r[E.d]].map((s) => (s ?? '').trim())
+    const prompt = (r[E.q] ?? '').trim()
+    const explanation = (r[E.expl] ?? '').trim()
+    if (!prompt || !explanation || choices.some((s) => s === '')) {
+      console.warn(`⚠ Traduction anglaise incomplète pour ${ref} — le français est conservé.`)
+      continue
+    }
+    enByRef.set(ref, {
+      prompt,
+      choices,
+      explanation,
+      tag: E.sous === -1 ? undefined : (r[E.sous] ?? '').trim(),
+    })
+  }
+}
+
+/** Applique le calque anglais à une question française. */
+function translate(ref, question) {
+  const t = enByRef.get(ref)
+  if (!t) return question
+  return {
+    ...question,
+    prompt: t.prompt,
+    choices: t.choices,
+    explanation: t.explanation,
+    tag: t.tag || question.tag,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 3. Assemblage
+// ---------------------------------------------------------------------------
+const present = ORDER.filter((p) => byPrefix.has(p))
+
+const build = (locale) =>
+  present.map((p) => ({
+    id: META[p].id,
+    ...META[p][locale],
+    motif: META[p].motif,
+    questions: byPrefix
+      .get(p)
+      .map(({ ref, question }) => (locale === 'en' ? translate(ref, question) : question)),
+  }))
+
+const modulesByLocale = { fr: build('fr'), en: build('en') }
 
 const banner =
   '// AUTO-GÉNÉRÉ par scripts/build-modules.mjs à partir de content/qcm-savoir-vivre.csv\n' +
-  '// Ne pas modifier à la main : éditez le CSV puis lancez `npm run build:content`.\n'
+  '// (+ sa traduction content/qcm-savoir-vivre.en.csv).\n' +
+  '// Ne pas modifier à la main : éditez les CSV puis lancez `npm run build:content`.\n'
 
 const body =
-  `import type { Module } from '../types'\n\n` +
-  `export const modules: Module[] = ${JSON.stringify(modules, null, 2)}\n\n` +
-  `export const moduleById = (id: string): Module | undefined =>\n` +
-  `  modules.find((m) => m.id === id)\n`
+  `import type { Module } from '../types'\n` +
+  `import type { Locale } from '../lib/i18n'\n\n` +
+  `export const modulesByLocale: Record<Locale, Module[]> = ${JSON.stringify(
+    modulesByLocale,
+    null,
+    2,
+  )}\n\n` +
+  `/**\n` +
+  ` * Liste canonique servant à toute la logique indexée par identifiant\n` +
+  ` * (progression, classement, tirage de l'examen). Les \`id\` de modules et de\n` +
+  ` * questions sont identiques dans les deux langues : la progression d'un\n` +
+  ` * joueur reste donc valable s'il change de langue.\n` +
+  ` */\n` +
+  `export const modules: Module[] = modulesByLocale.fr\n\n` +
+  `export const modulesFor = (locale: Locale): Module[] => modulesByLocale[locale]\n\n` +
+  `export const moduleById = (id: string, locale: Locale = 'fr'): Module | undefined =>\n` +
+  `  modulesByLocale[locale].find((m) => m.id === id)\n`
 
 writeFileSync(OUT_PATH, banner + '\n' + body, 'utf8')
 
-const total = modules.reduce((n, m) => n + m.questions.length, 0)
-console.log(`✓ ${modules.length} modules, ${total} questions → src/content/modules.ts`)
-for (const m of modules) console.log(`  · ${m.title} — ${m.questions.length} questions`)
+const total = modulesByLocale.fr.reduce((n, m) => n + m.questions.length, 0)
+console.log(`✓ ${modulesByLocale.fr.length} modules, ${total} questions → src/content/modules.ts`)
+for (const m of modulesByLocale.fr) console.log(`  · ${m.title} — ${m.questions.length} questions`)
+if (!enAvailable) {
+  console.warn(
+    `\n⚠ ${CSV_EN_PATH} introuvable : la version anglaise reprend le texte français.`,
+  )
+} else {
+  const missing = total - enByRef.size
+  console.log(
+    `  EN : ${enByRef.size}/${total} questions traduites` +
+      (missing > 0 ? ` — ⚠ ${missing} encore en français` : ''),
+  )
+}
