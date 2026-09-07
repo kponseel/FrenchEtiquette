@@ -1,4 +1,5 @@
 import { useI18n } from '../lib/i18n'
+import './LanguageToggle.css'
 
 /**
  * Bascule français / anglais. Le libellé affiche la langue vers laquelle on
