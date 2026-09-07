@@ -17,7 +17,7 @@
 // Les questions sont regroupées en modules d'après le préfixe de `Ref`
 // (T1, T2, …), dont les métadonnées d'affichage sont définies dans META.
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -303,6 +303,9 @@ const body =
   `export const moduleById = (id: string, locale: Locale = 'fr'): Module | undefined =>\n` +
   `  modulesByLocale[locale].find((m) => m.id === id)\n`
 
+// `modules.ts` étant le seul fichier de src/content/ et n'étant plus versionné,
+// le dossier n'existe pas sur un clone frais : il faut le créer avant d'écrire.
+mkdirSync(dirname(OUT_PATH), { recursive: true })
 writeFileSync(OUT_PATH, banner + '\n' + body, 'utf8')
 
 const total = modulesByLocale.fr.reduce((n, m) => n + m.questions.length, 0)
