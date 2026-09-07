@@ -6,9 +6,11 @@ import Quiz from './pages/Quiz'
 import Certificate from './pages/Certificate'
 import Leaderboard from './pages/Leaderboard'
 import Profile from './pages/Profile'
+import { useT } from './lib/i18n'
 import type { JSX } from 'react'
 
 function Splash() {
+  const t = useT()
   return (
     <div className="screen screen--centered">
       <div className="center">
@@ -16,7 +18,7 @@ function Splash() {
           <span className="brandmark__monogram">É</span>
         </div>
         <p className="muted" style={{ marginTop: 16 }}>
-          Un instant…
+          {t('common.loading')}
         </p>
       </div>
     </div>

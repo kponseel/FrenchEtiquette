@@ -5,13 +5,18 @@
 // HTTPS), qui le hache (password_hash) et le vérifie. Ce module ne fait plus
 // que de la validation de saisie.
 
+import type { Issue } from './i18n'
+
 export const PIN_MIN = 2
 export const PIN_MAX = 10
 
-/** Renvoie un message d'erreur si le PIN est invalide, sinon null. */
-export function validatePin(pin: string): string | null {
-  if (!/^\d+$/.test(pin)) return 'Le code ne doit contenir que des chiffres.'
-  if (pin.length < PIN_MIN) return `Au moins ${PIN_MIN} chiffres, je vous prie.`
-  if (pin.length > PIN_MAX) return `${PIN_MAX} chiffres maximum.`
+/**
+ * Renvoie un `Issue` (clé de traduction + paramètres) si le PIN est invalide,
+ * sinon null. Fonction pure : la traduction se fait à l'affichage.
+ */
+export function validatePin(pin: string): Issue | null {
+  if (!/^\d+$/.test(pin)) return { key: 'error.pinDigitsOnly' }
+  if (pin.length < PIN_MIN) return { key: 'error.pinTooShort', params: { min: PIN_MIN } }
+  if (pin.length > PIN_MAX) return { key: 'error.pinTooLong', params: { max: PIN_MAX } }
   return null
 }

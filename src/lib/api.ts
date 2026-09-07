@@ -8,6 +8,15 @@ import type { AttemptResult, Player } from '../types'
 
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api/'
 
+// Langue courante, jointe à chaque requête pour que le serveur renvoie ses
+// messages d'erreur dans la bonne langue. Tenue à jour par l'I18nProvider —
+// un module-level évite d'ajouter un paramètre à chaque appel.
+let currentLang = 'fr'
+
+export function setApiLang(lang: string): void {
+  currentLang = lang
+}
+
 export class ApiError extends Error {
   status: number
   constructor(message: string, status: number) {
@@ -26,7 +35,7 @@ async function call<T>(
     res = await fetch(BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...payload }),
+      body: JSON.stringify({ action, lang: currentLang, ...payload }),
     })
   } catch {
     // Réseau coupé, serveur injoignable, CORS bloqué…

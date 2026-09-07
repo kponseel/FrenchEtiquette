@@ -5,10 +5,10 @@
   "type": "module",
   "description": "L'Étiquette — PWA pour tester sa connaissance de l'étiquette à la française et être certifié Gentleman.",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "npm run build:content && vite",
+    "build": "npm run build:content && tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "tsc -b --noEmit",
+    "lint": "npm run build:content && tsc -b --noEmit",
     "icons": "node scripts/generate-icons.mjs",
     "build:content": "node scripts/build-modules.mjs"
   },
